@@ -1,131 +1,173 @@
-// src/screens/HomeScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   FlatList,
   SafeAreaView,
-  Pressable,
   ActivityIndicator,
+  RefreshControl,
+  TextInput,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import axios from 'axios';
-import { useQuery } from '@tanstack/react-query';
-import { logoutUser } from '../api/authService';
-import { resetAndNavigate } from '../utils/NavigationUtil';
+import { MagnifyingGlassIcon } from 'react-native-heroicons/outline';
+import { useLibraries } from '../hooks/useLibraries';
+import { useStorage, STORAGE_KEYS } from '../hooks/useStorage';
+import LocationPicker from '../components/LocationPicker';
 import LibraryCard from '../components/LibraryCard';
-import { API_ROUTES } from '../config/api';
+import { Library } from '../types/api';
 
+interface HomeScreenProps {
+  navigation: any;
+}
 
-type Location = {
-  city: string;
-  state: string;
-  country: string;
-};
+export default function HomeScreen({ navigation }: HomeScreenProps) {
+  const [selectedLocation, setSelectedLocation] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const { getItem } = useStorage();
 
-type Library = {
-  id: string;
-  libraryName: string;
-  totalSeats: number;
-};
+  // Load saved location on mount
+  useEffect(() => {
+    const savedLocation = getItem<string>(STORAGE_KEYS.SELECTED_LOCATION);
+    if (savedLocation) {
+      setSelectedLocation(savedLocation);
+    }
+  }, []);
 
-export default function HomeScreen() {
-  const [selectedCity, setSelectedCity] = useState<string>('');
-
-  // Fetch all locations
   const {
-    data: locations,
-    isLoading: loadingLocations,
-    error: locationError,
-  } = useQuery<Location[], Error>({
-    queryKey: ['locations'],
-    queryFn: async () => {
-      const res = await axios.get(API_ROUTES.getLocations);
-      return res.data;
-    },
-  });
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+    isRefetching,
+  } = useLibraries(selectedLocation, !!selectedLocation);
 
-  // Extract unique cities
-  const uniqueCities = locations
-    ? Array.from(new Set(locations.map((loc) => loc.city)))
-    : [];
+  const libraries = data?.pages.flatMap(page => page.data) || [];
 
-  // Fetch libraries based on selected city
-  const {
-    data: libraries = [],
-    isLoading: loadingLibraries,
-    error: libraryError,
-  } = useQuery<Library[], Error>({
-    queryKey: ['libraries', selectedCity],
-    queryFn: async () => {
-      const res = await axios.get(API_ROUTES.getLibraries(selectedCity));
-      return res.data.data;
-    },
-    enabled: !!selectedCity,
-  });
+  // Filter libraries based on search query
+  const filteredLibraries = libraries.filter(library =>
+    library.libraryName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    library.area?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  const handleLogout = async () => {
-    await logoutUser();
-    resetAndNavigate('Login');
+  const handleLibraryPress = (library: Library) => {
+    navigation.navigate('LibraryDetails', { libraryId: library.id });
   };
 
+  const handleLoadMore = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  const renderLibraryItem = ({ item }: { item: Library }) => (
+    <LibraryCard
+      library={item}
+      onPress={() => handleLibraryPress(item)}
+    />
+  );
+
+  const renderFooter = () => {
+    if (!isFetchingNextPage) return null;
+    return (
+      <View className="py-4">
+        <ActivityIndicator size="small" color="#3b82f6" />
+      </View>
+    );
+  };
+
+  const renderEmptyState = () => (
+    <View className="flex-1 items-center justify-center py-12">
+      <Text className="text-lg font-medium text-gray-600 mb-2">
+        {!selectedLocation ? 'Select a location to view libraries' : 'No libraries found'}
+      </Text>
+      <Text className="text-sm text-gray-500 text-center px-8">
+        {!selectedLocation 
+          ? 'Choose your preferred location from the dropdown above'
+          : 'Try selecting a different location or check back later'
+        }
+      </Text>
+    </View>
+  );
+
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      {/* Location Dropdown */}
-      <View className="flex-row items-center px-5 mt-4">
-        <Text className="text-lg mr-3 font-semibold">Location:</Text>
-        {loadingLocations ? (
-          <ActivityIndicator size="small" color="#000" />
-        ) : locationError ? (
-          <Text className="text-red-500">Failed to load locations</Text>
-        ) : (
-          <Picker
-            selectedValue={selectedCity}
-            onValueChange={(value) => setSelectedCity(value)}
-            style={{ flex: 1, height: 48 }}
-          >
-            <Picker.Item label="Select a city" value="" />
-            {uniqueCities.map((city) => (
-              <Picker.Item key={city} label={city} value={city} />
-            ))}
-          </Picker>
+    <SafeAreaView className="flex-1 bg-gray-50">
+      <View className="px-4 pt-4">
+        {/* Header */}
+        <View className="mb-4">
+          <Text className="text-2xl font-bold text-gray-800 mb-1">
+            Find Libraries
+          </Text>
+          <Text className="text-gray-600">
+            Discover the perfect study space near you
+          </Text>
+        </View>
+
+        {/* Location Picker */}
+        <LocationPicker
+          selectedLocation={selectedLocation}
+          onLocationChange={setSelectedLocation}
+        />
+
+        {/* Search Bar */}
+        {selectedLocation && (
+          <View className="flex-row items-center bg-white rounded-lg border border-gray-200 px-3 py-2 mb-4">
+            <MagnifyingGlassIcon size={20} color="#6b7280" />
+            <TextInput
+              placeholder="Search libraries..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              className="flex-1 ml-2 text-base text-gray-800"
+              placeholderTextColor="#9ca3af"
+            />
+          </View>
         )}
       </View>
 
       {/* Libraries List */}
-      <View className="flex-1 px-5 mt-4">
-        {loadingLibraries ? (
-          <ActivityIndicator size="large" color="#000" />
-        ) : libraryError ? (
-          <Text className="text-red-500">Failed to load libraries</Text>
-        ) : libraries.length > 0 ? (
-          <FlatList
-            data={libraries}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <LibraryCard name={item.libraryName} seats={item.totalSeats} />
-            )}
-            contentContainerStyle={{ paddingBottom: 20 }}
-          />
-        ) : (
-          <Text className="text-center text-gray-500 mt-8">
-            No libraries found for this location
-          </Text>
-        )}
-      </View>
+      {selectedLocation ? (
+        <FlatList
+          data={filteredLibraries}
+          renderItem={renderLibraryItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
+          showsVerticalScrollIndicator={false}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.3}
+          ListFooterComponent={renderFooter}
+          ListEmptyComponent={!isLoading ? renderEmptyState : null}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              colors={['#3b82f6']}
+            />
+          }
+        />
+      ) : (
+        renderEmptyState()
+      )}
 
-      {/* Logout */}
-      <View className="border-t border-gray-200 p-4">
-        <Pressable
-          onPress={handleLogout}
-          className="bg-red-600 rounded-md py-3"
-          android_ripple={{ color: '#991b1b' }}
-        >
-          <Text className="text-white text-center font-semibold text-lg">
-            Logout
+      {/* Loading State */}
+      {isLoading && selectedLocation && (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#3b82f6" />
+          <Text className="mt-2 text-gray-600">Loading libraries...</Text>
+        </View>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <View className="flex-1 items-center justify-center px-8">
+          <Text className="text-red-500 text-center mb-2">
+            Failed to load libraries
           </Text>
-        </Pressable>
-      </View>
+          <Text className="text-gray-600 text-center text-sm">
+            Please check your connection and try again
+          </Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
