@@ -11,15 +11,8 @@ import {
 import { ArrowLeftIcon, CheckIcon } from 'react-native-heroicons/outline';
 import { Library, LibraryPlan, TimeSlot, Seat } from '../types/api';
 import { bookingApi } from '../services/api';
+import { BookingScreenProps } from '../types/navigation';
 
-interface BookingScreenProps {
-  navigation: any;
-  route: {
-    params: {
-      library: Library;
-    };
-  };
-}
 
 export default function BookingScreen({ navigation, route }: BookingScreenProps) {
   const { library } = route.params;

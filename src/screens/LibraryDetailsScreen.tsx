@@ -18,18 +18,10 @@ import {
   StarIcon,
   ShareIcon,
 } from 'react-native-heroicons/outline';
-import { HeartIcon } from 'react-native-heroicons/solid';
 import { useLibraryDetails } from '../hooks/useLibraries';
 import { Review, FAQ } from '../types/api';
+import { LibraryDetailsScreenProps } from '../types/navigation';
 
-interface LibraryDetailsScreenProps {
-  navigation: any;
-  route: {
-    params: {
-      libraryId: string;
-    };
-  };
-}
 
 const { width } = Dimensions.get('window');
 

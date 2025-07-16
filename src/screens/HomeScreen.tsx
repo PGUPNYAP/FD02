@@ -14,10 +14,8 @@ import { useStorage, STORAGE_KEYS } from '../hooks/useStorage';
 import LocationPicker from '../components/LocationPicker';
 import LibraryCard from '../components/LibraryCard';
 import { Library } from '../types/api';
+import { HomeScreenProps } from '../types/navigation';
 
-interface HomeScreenProps {
-  navigation: any;
-}
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [selectedLocation, setSelectedLocation] = useState<string>('');

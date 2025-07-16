@@ -10,8 +10,9 @@ import BookingScreen from '../screens/BookingScreen';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
 import { navigationRef } from '../utils/NavigationUtil';
+import { RootStackParamList } from '../types/navigation';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function Navigation() {
   return (

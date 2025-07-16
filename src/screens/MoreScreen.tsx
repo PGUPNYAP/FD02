@@ -16,10 +16,8 @@ import {
   DocumentTextIcon,
   StarIcon,
 } from 'react-native-heroicons/outline';
+import { MoreScreenProps } from '../types/navigation';
 
-interface MoreScreenProps {
-  navigation: any;
-}
 
 export default function MoreScreen({ navigation }: MoreScreenProps) {
   const supportOptions = [

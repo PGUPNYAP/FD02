@@ -14,10 +14,8 @@ import {
   VideoCameraIcon,
   ChatBubbleLeftRightIcon,
 } from 'react-native-heroicons/solid';
+import { MentorshipScreenProps } from '../types/navigation';
 
-interface MentorshipScreenProps {
-  navigation: any;
-}
 
 export default function MentorshipScreen({ navigation }: MentorshipScreenProps) {
   const mentors = [

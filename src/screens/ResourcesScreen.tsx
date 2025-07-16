@@ -13,10 +13,8 @@ import {
   VideoCameraIcon,
   GlobeAltIcon,
 } from 'react-native-heroicons/outline';
+import { ResourcesScreenProps } from '../types/navigation';
 
-interface ResourcesScreenProps {
-  navigation: any;
-}
 
 export default function ResourcesScreen({ navigation }: ResourcesScreenProps) {
   const resourceCategories = [

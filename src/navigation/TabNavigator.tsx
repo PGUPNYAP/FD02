@@ -20,8 +20,9 @@ import ResourcesScreen from '../screens/ResourcesScreen';
 import MentorshipScreen from '../screens/MentorshipScreen';
 import MoreScreen from '../screens/MoreScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import { TabParamList } from '../types/navigation';
 
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<TabParamList>();
 
 export default function TabNavigator() {
   return (
