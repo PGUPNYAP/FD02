@@ -8,10 +8,16 @@ import { Location } from '../types/api';
 interface LocationPickerProps {
   selectedLocation: string;
   onLocationChange: (location: string) => void;
+  isVisible: boolean;
+  onClose: () => void;
 }
 
-export default function LocationPicker({ selectedLocation, onLocationChange }: LocationPickerProps) {
-  const [isModalVisible, setIsModalVisible] = useState(false);
+export default function LocationPicker({ 
+  selectedLocation, 
+  onLocationChange, 
+  isVisible, 
+  onClose 
+}: LocationPickerProps) {
   const { data: locations, isLoading, error } = useLocations();
   const { setItem } = useStorage();
 
@@ -20,7 +26,6 @@ export default function LocationPicker({ selectedLocation, onLocationChange }: L
   const handleLocationSelect = (city: string) => {
     onLocationChange(city);
     setItem(STORAGE_KEYS.SELECTED_LOCATION, city);
-    setIsModalVisible(false);
   };
 
   const renderLocationItem = ({ item }: { item: string }) => (
@@ -35,29 +40,14 @@ export default function LocationPicker({ selectedLocation, onLocationChange }: L
   );
 
   return (
-    <View className="mb-4">
-      <Pressable
-        onPress={() => setIsModalVisible(true)}
-        className="flex-row items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-200"
-        android_ripple={{ color: '#f3f4f6' }}
-      >
-        <View className="flex-row items-center flex-1">
-          <MapPinIcon size={20} color="#3b82f6" />
-          <Text className="ml-2 text-base font-medium text-gray-800">
-            {selectedLocation || 'Select Location'}
-          </Text>
-        </View>
-        <ChevronDownIcon size={20} color="#6b7280" />
-      </Pressable>
-
       <Modal
-        visible={isModalVisible}
+        visible={isVisible}
         animationType="slide"
         transparent={true}
-        onRequestClose={() => setIsModalVisible(false)}
+        onRequestClose={onClose}
       >
         <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl max-h-96">
+          <View className="bg-white rounded-t-3xl max-h-96 shadow-2xl">
             <View className="p-4 border-b border-gray-200">
               <Text className="text-lg font-semibold text-center text-gray-800">
                 Select Location
@@ -83,7 +73,7 @@ export default function LocationPicker({ selectedLocation, onLocationChange }: L
             )}
 
             <Pressable
-              onPress={() => setIsModalVisible(false)}
+              onPress={onClose}
               className="p-4 border-t border-gray-200"
               android_ripple={{ color: '#f3f4f6' }}
             >
@@ -92,6 +82,5 @@ export default function LocationPicker({ selectedLocation, onLocationChange }: L
           </View>
         </View>
       </Modal>
-    </View>
   );
 }

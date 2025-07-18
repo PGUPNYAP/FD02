@@ -6,31 +6,29 @@ import {
   SafeAreaView,
   ActivityIndicator,
   Pressable,
-  Image,
   Linking,
   Alert,
-  Dimensions,
+  StatusBar,
 } from 'react-native';
 import {
   ArrowLeftIcon,
   PhoneIcon,
   MapPinIcon,
   ClockIcon,
-  StarIcon,
   ShareIcon,
+  StarIcon,
+  ChatBubbleLeftRightIcon,
 } from 'react-native-heroicons/outline';
+import { ChatBubbleLeftRightIcon as WhatsAppIcon } from 'react-native-heroicons/solid';
 import { useLibraryDetails } from '../hooks/useLibraries';
-import { Review, FAQ } from '../types/api';
+import { Review, FAQ, Library } from '../types/api';
 import { LibraryDetailsScreenProps } from '../types/navigation';
-
-  import {  Platform } from 'react-native';
-
-
-const { width } = Dimensions.get('window');
+import ImageSlider from '../components/ImageSlider';
+import ExpandableText from '../components/ExpandableText';
+import FacilityIcon from '../components/FacilityIcon';
 
 export default function LibraryDetailsScreen({ navigation, route }: LibraryDetailsScreenProps) {
   const { libraryId } = route.params;
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { data: library, isLoading, error } = useLibraryDetails(libraryId);
 
   const handleCall = () => {
@@ -40,27 +38,27 @@ export default function LibraryDetailsScreen({ navigation, route }: LibraryDetai
   };
 
 
-const handleWhatsApp = () => {
-  if (library?.whatsAppNumber) {
-    const phoneWithCountryCode = library.whatsAppNumber.replace(/\D/g, ''); // Clean number
-    const url = `whatsapp://send?phone=${phoneWithCountryCode}`;
+  const handleWhatsApp = () => {
+    if (library?.whatsAppNumber) {
+      const phoneWithCountryCode = library.whatsAppNumber.replace(/\D/g, '');
+      const url = `whatsapp://send?phone=${phoneWithCountryCode}`;
 
-    Linking.canOpenURL(url)
-      .then((supported) => {
-        if (supported) {
-          return Linking.openURL(url);
-        } else {
-          Alert.alert('Error', 'WhatsApp is not installed on your device.');
-        }
-      })
-      .catch((err) => {
-        console.error('WhatsApp error:', err);
-        Alert.alert('Error', 'Failed to open WhatsApp.');
-      });
-  } else {
-    Alert.alert('Missing Number', 'This library does not have a WhatsApp number.');
-  }
-};
+      Linking.canOpenURL(url)
+        .then((supported) => {
+          if (supported) {
+            return Linking.openURL(url);
+          } else {
+            Alert.alert('Error', 'WhatsApp is not installed on your device.');
+          }
+        })
+        .catch((err) => {
+          console.error('WhatsApp error:', err);
+          Alert.alert('Error', 'Failed to open WhatsApp.');
+        });
+    } else {
+      Alert.alert('Missing Number', 'This library does not have a WhatsApp number.');
+    }
+  };
 
 
   const handleDirections = () => {
@@ -70,100 +68,63 @@ const handleWhatsApp = () => {
   };
 
   const handleBookNow = () => {
-  if (library) {
-    navigation.navigate('Booking', { library });
-  } else {
-    // Optional: You can show an alert to inform the user
-    Alert.alert(
-      'Library not available',
-      'Unable to proceed with booking because library details are not loaded.'
-    );
-  }
-};
+    if (library) {
+      navigation.navigate('Booking', { library });
+    } else {
+      Alert.alert(
+        'Library not available',
+        'Unable to proceed with booking because library details are not loaded.'
+      );
+    }
+  };
 
-
-  const renderImageSlider = () => {
-    const images = library?.photos || [];
-    if (images.length === 0) {
+  const renderReviews = (reviews: Review[]) => {
+    if (reviews.length === 0) {
       return (
-        <View className="h-64 bg-gradient-to-br from-blue-100 to-blue-200 items-center justify-center">
-          <Text className="text-blue-600 font-bold text-4xl">
-            {library?.libraryName.charAt(0)}
-          </Text>
-        </View>
+        <Text className="text-gray-500 text-center py-4">
+          No reviews yet
+        </Text>
       );
     }
 
-    return (
-      <ScrollView
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={(event) => {
-          const index = Math.round(event.nativeEvent.contentOffset.x / width);
-          setCurrentImageIndex(index);
-        }}
-      >
-        {images.map((image, index) => (
-          <Image
-            key={index}
-            source={{ uri: image }}
-            style={{ width, height: 256 }}
-            resizeMode="cover"
-          />
-        ))}
-      </ScrollView>
-    );
-  };
-
- const renderReviews = (reviews: Review[]) => {
-  if (reviews.length === 0) {
-    return (
-      <Text className="text-gray-500 text-center py-4">
-        No reviews yet
-      </Text>
-    );
-  }
-
-  return reviews.slice(0, 3).map((review) => (
-    <View key={review.id} className="mb-4 p-3 bg-gray-50 rounded-lg">
-      <View className="flex-row items-center mb-2">
-        <View className="flex-row">
-          {[...Array(5)].map((_, i) => (
-            <StarIcon
-              key={i}
-              size={14}
-              color={i < review.stars ? '#fbbf24' : '#e5e7eb'}
-            />
-          ))}
+    return reviews.slice(0, 3).map((review) => (
+      <View key={review.id} className="mb-4 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+        <View className="flex-row items-center mb-2">
+          <View className="flex-row">
+            {[...Array(5)].map((_, i) => (
+              <StarIcon
+                key={i}
+                size={14}
+                color={i < review.stars ? '#fbbf24' : '#e5e7eb'}
+              />
+            ))}
+          </View>
+          {review.student ? (
+            <Text className="ml-2 text-sm text-gray-600 font-medium">
+              {review.student.firstName} {review.student.lastName}
+            </Text>
+          ) : (
+            <Text className="ml-2 text-sm text-gray-500 italic">
+              Anonymous
+            </Text>
+          )}
         </View>
-        {review.student ? (
-          <Text className="ml-2 text-sm text-gray-600">
-            {review.student.firstName} {review.student.lastName}
-          </Text>
-        ) : (
-          <Text className="ml-2 text-sm text-gray-500 italic">
-            Anonymous
-          </Text>
+        {review.comment && (
+          <Text className="text-sm text-gray-700 leading-5">{review.comment}</Text>
         )}
       </View>
-      {review.comment && (
-        <Text className="text-sm text-gray-700">{review.comment}</Text>
-      )}
-    </View>
-  ));
-};
-
+    ));
+  };
 
   const renderFAQs = (faqs: FAQ[]) => {
     if (faqs.length === 0) return null;
 
     return faqs.map((faq) => (
-      <View key={faq.id} className="mb-3">
-        <Text className="font-medium text-gray-800 mb-1">
+      <View key={faq.id} className="mb-4 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+        <Text className="font-semibold text-gray-800 mb-2">
           Q: {faq.question}
         </Text>
-        <Text className="text-gray-600 text-sm">
+        <Text className="text-gray-600 text-sm leading-5">
           A: {faq.answer}
         </Text>
       </View>
@@ -172,30 +133,36 @@ const handleWhatsApp = () => {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-white">
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#3b82f6" />
-          <Text className="mt-2 text-gray-600">Loading library details...</Text>
-        </View>
-      </SafeAreaView>
+      <>
+        <StatusBar barStyle="dark-content" backgroundColor="white" />
+        <SafeAreaView className="flex-1 bg-white">
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#3b82f6" />
+            <Text className="mt-2 text-gray-600">Loading library details...</Text>
+          </View>
+        </SafeAreaView>
+      </>
     );
   }
 
   if (error || !library) {
     return (
-      <SafeAreaView className="flex-1 bg-white">
-        <View className="flex-1 items-center justify-center px-8">
-          <Text className="text-red-500 text-center mb-2">
-            Failed to load library details
-          </Text>
-          <Pressable
-            onPress={() => navigation.goBack()}
-            className="mt-4 bg-blue-600 px-6 py-2 rounded-lg"
-          >
-            <Text className="text-white font-medium">Go Back</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
+      <>
+        <StatusBar barStyle="dark-content" backgroundColor="white" />
+        <SafeAreaView className="flex-1 bg-white">
+          <View className="flex-1 items-center justify-center px-8">
+            <Text className="text-red-500 text-center mb-2">
+              Failed to load library details
+            </Text>
+            <Pressable
+              onPress={() => navigation.goBack()}
+              className="mt-4 bg-blue-600 px-6 py-2 rounded-lg"
+            >
+              <Text className="text-white font-medium">Go Back</Text>
+            </Pressable>
+          </View>
+        </SafeAreaView>
+      </>
     );
   }
 
@@ -204,45 +171,198 @@ const handleWhatsApp = () => {
     : 0;
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      {/* Header */}
-      <View className="flex-row items-center justify-between p-4 border-b border-gray-200">
-        <Pressable
-          onPress={() => navigation.goBack()}
-          className="p-2 rounded-full"
-          android_ripple={{ color: '#f3f4f6' }}
-        >
-          <ArrowLeftIcon size={24} color="#374151" />
-        </Pressable>
-        <Text className="text-lg font-semibold text-gray-800">Library Details</Text>
-        <Pressable className="p-2 rounded-full" android_ripple={{ color: '#f3f4f6' }}>
-          <ShareIcon size={24} color="#374151" />
-        </Pressable>
-      </View>
+    <>
+      <StatusBar barStyle="dark-content" backgroundColor="white" />
+      <SafeAreaView className="flex-1 bg-gray-50">
+        {/* Header */}
+        <View className="flex-row items-center justify-between p-4 bg-white border-b border-gray-100">
+          <Pressable
+            onPress={() => navigation.goBack()}
+            className="p-2 rounded-full bg-gray-50"
+            android_ripple={{ color: '#f3f4f6' }}
+          >
+            <ArrowLeftIcon size={24} color="#374151" />
+          </Pressable>
+          <Text className="text-lg font-semibold text-gray-800">Library Details</Text>
+          <Pressable 
+            className="p-2 rounded-full bg-gray-50" 
+            android_ripple={{ color: '#f3f4f6' }}
+          >
+            <ShareIcon size={24} color="#374151" />
+          </Pressable>
+        </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Image Slider */}
-        <View className="relative">
-          {renderImageSlider()}
-          {library.photos.length > 1 && (
-            <View className="absolute bottom-4 left-0 right-0 flex-row justify-center">
-              {library.photos.map((_, index) => (
-                <View
-                  key={index}
-                  className={`w-2 h-2 rounded-full mx-1 ${
-                    index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                  }`}
-                />
+        <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+          {/* Image Slider */}
+          <ImageSlider 
+            images={library.photos} 
+            height={280} 
+            libraryName={library.libraryName}
+          />
+
+          <View className="p-4">
+          {/* Library Info */}
+          <View className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-4">
+            <View className="flex-row justify-between items-start mb-3">
+              <View className="flex-1">
+                <Text className="text-2xl font-bold text-gray-900 mb-2">
+                  {library.libraryName}
+                </Text>
+                <View className="flex-row items-center mb-2">
+                  <MapPinIcon size={16} color="#6b7280" />
+                  <Text className="ml-2 text-gray-600 flex-1">{library.address}</Text>
+                </View>
+                <View className="flex-row items-center">
+                  <ClockIcon size={16} color="#6b7280" />
+                  <Text className="ml-2 text-gray-700 font-medium">
+                    {library.openingTime} - {library.closingTime}
+                  </Text>
+                </View>
+              </View>
+              {averageRating > 0 && (
+                <View className="items-center bg-yellow-50 px-3 py-2 rounded-xl">
+                  <View className="flex-row items-center">
+                    <StarIcon size={16} color="#fbbf24" />
+                    <Text className="ml-1 font-bold text-gray-800">
+                      {averageRating.toFixed(1)}
+                    </Text>
+                  </View>
+                  <Text className="text-xs text-gray-500 mt-1">
+                    {library.reviews.length} reviews
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* Action Buttons */}
+            <View className="flex-row space-x-3">
+              <Pressable
+                onPress={handleCall}
+                className="flex-1 bg-green-600 py-3 rounded-xl flex-row items-center justify-center shadow-sm"
+                android_ripple={{ color: '#16a34a' }}
+              >
+                <PhoneIcon size={18} color="white" />
+                <Text className="ml-2 text-white font-semibold">Call</Text>
+              </Pressable>
+
+              {library.whatsAppNumber && (
+                <Pressable
+                  onPress={handleWhatsApp}
+                  className="flex-1 bg-green-500 py-3 rounded-xl flex-row items-center justify-center shadow-sm"
+                  android_ripple={{ color: '#22c55e' }}
+                >
+                  <WhatsAppIcon size={18} color="white" />
+                  <Text className="ml-2 text-white font-semibold">WhatsApp</Text>
+                </Pressable>
+              )}
+
+              <Pressable
+                onPress={handleDirections}
+                className="flex-1 bg-blue-600 py-3 rounded-xl flex-row items-center justify-center shadow-sm"
+                android_ripple={{ color: '#2563eb' }}
+              >
+                <MapPinIcon size={18} color="white" />
+                <Text className="ml-2 text-white font-semibold">Directions</Text>
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Description */}
+          {library.description && (
+            <View className="mb-6">
+              <Text className="text-lg font-semibold text-gray-800 mb-3 px-1">About</Text>
+              <ExpandableText 
+                text={library.description}
+                numberOfLines={3}
+                containerStyle="bg-white p-5 rounded-2xl shadow-sm border border-gray-100"
+                textStyle="text-gray-700 leading-6"
+              />
+            </View>
+          )}
+
+          {/* Facilities */}
+          <View className="mb-6">
+            <Text className="text-lg font-semibold text-gray-800 mb-3 px-1">Facilities</Text>
+            <View className="flex-row flex-wrap">
+              {library.facilities.map((facility, index) => (
+                <FacilityIcon key={index} facility={facility} size={16} />
               ))}
+            </View>
+          </View>
+
+          {/* Plans */}
+          <View className="mb-6">
+            <Text className="text-lg font-semibold text-gray-800 mb-3 px-1">Subscription Plans</Text>
+            {library.plans.map((plan) => (
+              <View key={plan.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-3">
+                <View className="flex-row justify-between items-center">
+                  <View className="flex-1">
+                    <Text className="font-bold text-gray-900 text-lg">{plan.planName}</Text>
+                    <Text className="text-sm text-gray-600 mb-1">
+                      {plan.hours} hours • {plan.days} days
+                    </Text>
+                    {plan.description && (
+                      <Text className="text-sm text-gray-500">
+                        {plan.description}
+                      </Text>
+                    )}
+                  </View>
+                  <View className="items-end">
+                    <Text className="text-2xl font-bold text-blue-600">
+                      ₹{plan.price.toLocaleString()}
+                    </Text>
+                    <Text className="text-xs text-gray-500">per {plan.planType}</Text>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </View>
+
+          {/* Reviews */}
+          <View className="mb-6">
+            <Text className="text-lg font-semibold text-gray-800 mb-3 px-1">Reviews</Text>
+            {renderReviews(library.reviews)}
+          </View>
+
+          {/* FAQs */}
+          {library.faqs && library.faqs.length > 0 && (
+            <View className="mb-6">
+              <Text className="text-lg font-semibold text-gray-800 mb-3 px-1">
+                Frequently Asked Questions
+              </Text>
+              {renderFAQs(library.faqs)}
             </View>
           )}
         </View>
+        </ScrollView>
 
-        <View className="p-4">
-          {/* Library Info */}
-          <View className="flex-row justify-between items-start mb-4">
-            <View className="flex-1">
-              <Text className="text-2xl font-bold text-gray-800 mb-1">
+        {/* Book Now Button */}
+        <View className="p-4 bg-white border-t border-gray-100">
+          <Pressable
+            onPress={handleBookNow}
+            className="bg-blue-600 py-4 rounded-2xl shadow-lg"
+            style={{
+              shadowColor: '#3b82f6',
+              shadowOffset: {
+                width: 0,
+                height: 4,
+              },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 8,
+            }}
+            android_ripple={{ color: '#2563eb' }}
+          >
+            <Text className="text-white text-center font-bold text-lg">
+              Book Now
+            </Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    </>
+  );
+}
+
                 {library.libraryName}
               </Text>
               <View className="flex-row items-center">
