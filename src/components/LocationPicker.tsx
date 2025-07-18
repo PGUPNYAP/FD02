@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, Modal, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, Modal, FlatList, ActivityIndicator, Dimensions } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  runOnJS,
+} from 'react-native-reanimated';
 import { ChevronDownIcon, MapPinIcon } from 'react-native-heroicons/outline';
 import { useLocations } from '../hooks/useLibraries';
 import { useStorage, STORAGE_KEYS } from '../hooks/useStorage';
 import { Location } from '../types/api';
+
+const { height } = Dimensions.get('window');
 
 interface LocationPickerProps {
   selectedLocation: string;
@@ -20,13 +29,44 @@ export default function LocationPicker({
 }: LocationPickerProps) {
   const { data: locations, isLoading, error } = useLocations();
   const { setItem } = useStorage();
+  const translateY = useSharedValue(-height);
+  const opacity = useSharedValue(0);
 
   const uniqueCities = locations ? Array.from(new Set(locations.map(loc => loc.city))) : [];
+
+  useEffect(() => {
+    if (isVisible) {
+      opacity.value = withTiming(1, { duration: 300 });
+      translateY.value = withSpring(0, {
+        damping: 20,
+        stiffness: 90,
+      });
+    } else {
+      opacity.value = withTiming(0, { duration: 200 });
+      translateY.value = withTiming(-height, { duration: 200 });
+    }
+  }, [isVisible]);
 
   const handleLocationSelect = (city: string) => {
     onLocationChange(city);
     setItem(STORAGE_KEYS.SELECTED_LOCATION, city);
+    handleClose();
   };
+
+  const handleClose = () => {
+    opacity.value = withTiming(0, { duration: 200 });
+    translateY.value = withTiming(-height, { duration: 200 }, () => {
+      runOnJS(onClose)();
+    });
+  };
+
+  const backdropStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  const modalStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
 
   const renderLocationItem = ({ item }: { item: string }) => (
     <Pressable
@@ -40,14 +80,25 @@ export default function LocationPicker({
   );
 
   return (
-      <Modal
-        visible={isVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={onClose}
+    <Modal
+      visible={isVisible}
+      animationType="none"
+      transparent={true}
+      onRequestClose={handleClose}
+    >
+      <Animated.View 
+        className="flex-1 bg-black/50"
+        style={backdropStyle}
       >
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl max-h-96 shadow-2xl">
+        <Pressable 
+          className="flex-1" 
+          onPress={handleClose}
+        />
+        <Animated.View 
+          className="bg-white rounded-b-3xl max-h-96 shadow-2xl"
+          style={[modalStyle, { position: 'absolute', top: 0, left: 0, right: 0 }]}
+        >
+          <View className="pt-12 pb-4 px-4 border-b border-gray-200">
             <View className="p-4 border-b border-gray-200">
               <Text className="text-lg font-semibold text-center text-gray-800">
                 Select Location
@@ -73,14 +124,14 @@ export default function LocationPicker({
             )}
 
             <Pressable
-              onPress={onClose}
+              onPress={handleClose}
               className="p-4 border-t border-gray-200"
               android_ripple={{ color: '#f3f4f6' }}
             >
               <Text className="text-center text-gray-600 font-medium">Cancel</Text>
             </Pressable>
-          </View>
-        </View>
-      </Modal>
+        </Animated.View>
+      </Animated.View>
+    </Modal>
   );
 }

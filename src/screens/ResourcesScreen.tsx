@@ -13,10 +13,10 @@ import {
   VideoCameraIcon,
   GlobeAltIcon,
 } from 'react-native-heroicons/outline';
-import { ResourcesScreenProps } from '../types/navigation';
+import { TabScreenProps } from '../types/navigation';
 
 
-export default function ResourcesScreen({ navigation }: ResourcesScreenProps) {
+export default function ResourcesScreen({ navigation }: TabScreenProps<'Resources'>) {
   const resourceCategories = [
     {
       id: '1',

@@ -16,10 +16,10 @@ import {
   DocumentTextIcon,
   StarIcon,
 } from 'react-native-heroicons/outline';
-import { MoreScreenProps } from '../types/navigation';
+import { TabScreenProps } from '../types/navigation';
 
 
-export default function MoreScreen({ navigation }: MoreScreenProps) {
+export default function MoreScreen({ navigation }: TabScreenProps<'More'>) {
   const supportOptions = [
     {
       icon: ChatBubbleLeftRightIcon,

@@ -15,10 +15,10 @@ import {
   QuestionMarkCircleIcon,
   Cog6ToothIcon,
 } from 'react-native-heroicons/outline';
-import { ProfileScreenProps } from '../types/navigation';
+import { TabScreenProps } from '../types/navigation';
 
 
-export default function ProfileScreen({ navigation }: ProfileScreenProps) {
+export default function ProfileScreen({ navigation }: TabScreenProps<'More'>) {
   // Mock user data
   const user = {
     name: 'Arav Prajapati',
