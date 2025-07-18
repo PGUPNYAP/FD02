@@ -16,7 +16,6 @@ import LibraryCard from '../components/LibraryCard';
 import { Library } from '../types/api';
 import { HomeScreenProps } from '../types/navigation';
 
-
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,7 +40,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     isRefetching,
   } = useLibraries(selectedLocation, !!selectedLocation);
 
-  const libraries = data?.pages.flatMap(page => page.data) || [];
+  const libraries = data?.pages.flatMap(page => (page as { data: Library[] }).data) || [];
 
   // Filter libraries based on search query
   const filteredLibraries = libraries.filter(library =>

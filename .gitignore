@@ -2,7 +2,7 @@ android/app/google-services.json
 fd_backend_main/node_modules/
 .env
 fd_backend_main/node_modules/
-firebase-service-account.json
+
 fd_backend_main/.env
 
 # OSX
@@ -80,4 +80,3 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
-firebase-service-account.json

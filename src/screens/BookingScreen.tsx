@@ -87,7 +87,7 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
           [
             {
               text: 'OK',
-              onPress: () => navigation.navigate('Profile'),
+              onPress: () => navigation.navigate('Home'),
             },
           ]
         );

@@ -21,9 +21,9 @@ import { ProfileScreenProps } from '../types/navigation';
 export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   // Mock user data
   const user = {
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '+91 9876543210',
+    name: 'Arav Prajapati',
+    email: 'aravmkp156@gmail.com',
+    phone: '+91 6386743048',
     profileImage: null,
   };
 
@@ -73,7 +73,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       icon: QuestionMarkCircleIcon,
       title: 'Help & Support',
       subtitle: 'Get help and contact support',
-      onPress: () => navigation.navigate('Support'),
+      onPress: () => navigation.navigate('Home'),
     },
     {
       icon: Cog6ToothIcon,

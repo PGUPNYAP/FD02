@@ -8,6 +8,7 @@ import {
   Pressable,
   Image,
   Linking,
+  Alert,
   Dimensions,
 } from 'react-native';
 import {
@@ -21,6 +22,8 @@ import {
 import { useLibraryDetails } from '../hooks/useLibraries';
 import { Review, FAQ } from '../types/api';
 import { LibraryDetailsScreenProps } from '../types/navigation';
+
+  import {  Platform } from 'react-native';
 
 
 const { width } = Dimensions.get('window');
@@ -36,11 +39,29 @@ export default function LibraryDetailsScreen({ navigation, route }: LibraryDetai
     }
   };
 
-  const handleWhatsApp = () => {
-    if (library?.whatsAppNumber) {
-      Linking.openURL(`whatsapp://send?phone=${library.whatsAppNumber}`);
-    }
-  };
+
+const handleWhatsApp = () => {
+  if (library?.whatsAppNumber) {
+    const phoneWithCountryCode = library.whatsAppNumber.replace(/\D/g, ''); // Clean number
+    const url = `whatsapp://send?phone=${phoneWithCountryCode}`;
+
+    Linking.canOpenURL(url)
+      .then((supported) => {
+        if (supported) {
+          return Linking.openURL(url);
+        } else {
+          Alert.alert('Error', 'WhatsApp is not installed on your device.');
+        }
+      })
+      .catch((err) => {
+        console.error('WhatsApp error:', err);
+        Alert.alert('Error', 'Failed to open WhatsApp.');
+      });
+  } else {
+    Alert.alert('Missing Number', 'This library does not have a WhatsApp number.');
+  }
+};
+
 
   const handleDirections = () => {
     if (library?.googleMapLink) {
@@ -49,8 +70,17 @@ export default function LibraryDetailsScreen({ navigation, route }: LibraryDetai
   };
 
   const handleBookNow = () => {
+  if (library) {
     navigation.navigate('Booking', { library });
-  };
+  } else {
+    // Optional: You can show an alert to inform the user
+    Alert.alert(
+      'Library not available',
+      'Unable to proceed with booking because library details are not loaded.'
+    );
+  }
+};
+
 
   const renderImageSlider = () => {
     const images = library?.photos || [];
@@ -86,37 +116,44 @@ export default function LibraryDetailsScreen({ navigation, route }: LibraryDetai
     );
   };
 
-  const renderReviews = (reviews: Review[]) => {
-    if (reviews.length === 0) {
-      return (
-        <Text className="text-gray-500 text-center py-4">
-          No reviews yet
-        </Text>
-      );
-    }
+ const renderReviews = (reviews: Review[]) => {
+  if (reviews.length === 0) {
+    return (
+      <Text className="text-gray-500 text-center py-4">
+        No reviews yet
+      </Text>
+    );
+  }
 
-    return reviews.slice(0, 3).map((review) => (
-      <View key={review.id} className="mb-4 p-3 bg-gray-50 rounded-lg">
-        <View className="flex-row items-center mb-2">
-          <View className="flex-row">
-            {[...Array(5)].map((_, i) => (
-              <StarIcon
-                key={i}
-                size={14}
-                color={i < review.stars ? '#fbbf24' : '#e5e7eb'}
-              />
-            ))}
-          </View>
+  return reviews.slice(0, 3).map((review) => (
+    <View key={review.id} className="mb-4 p-3 bg-gray-50 rounded-lg">
+      <View className="flex-row items-center mb-2">
+        <View className="flex-row">
+          {[...Array(5)].map((_, i) => (
+            <StarIcon
+              key={i}
+              size={14}
+              color={i < review.stars ? '#fbbf24' : '#e5e7eb'}
+            />
+          ))}
+        </View>
+        {review.student ? (
           <Text className="ml-2 text-sm text-gray-600">
             {review.student.firstName} {review.student.lastName}
           </Text>
-        </View>
-        {review.comment && (
-          <Text className="text-sm text-gray-700">{review.comment}</Text>
+        ) : (
+          <Text className="ml-2 text-sm text-gray-500 italic">
+            Anonymous
+          </Text>
         )}
       </View>
-    ));
-  };
+      {review.comment && (
+        <Text className="text-sm text-gray-700">{review.comment}</Text>
+      )}
+    </View>
+  ));
+};
+
 
   const renderFAQs = (faqs: FAQ[]) => {
     if (faqs.length === 0) return null;

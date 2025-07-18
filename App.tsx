@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Navigation from './src/navigation/Navigation';
 import { getStoredUser } from './src/utils/storage';
-import { configureGoogleSignin } from './src/config/googleSignIn';
+
 import SplashScreen from './src/screens/SplashScreen';
 import './global.css';
 
@@ -15,7 +15,7 @@ export default function App() {
   const [initialRoute, setInitialRoute] = useState<'Login' | 'Home'>('Login');
 
   useEffect(() => {
-    configureGoogleSignin();
+
 
     const checkUser = async () => {
       try {

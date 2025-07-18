@@ -36,7 +36,7 @@ export default function SplashScreen() {
     }, 400);
 
     const timer = setTimeout(() => {
-      replace('Login');
+      replace('Home');
     }, 3000);
 
     return () => clearTimeout(timer);
