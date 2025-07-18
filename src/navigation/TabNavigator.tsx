@@ -5,21 +5,18 @@ import {
   BookOpenIcon,
   AcademicCapIcon,
   EllipsisHorizontalIcon,
-  UserIcon,
 } from 'react-native-heroicons/outline';
 import {
   HomeIcon as HomeIconSolid,
   BookOpenIcon as BookOpenIconSolid,
   AcademicCapIcon as AcademicCapIconSolid,
   EllipsisHorizontalIcon as EllipsisHorizontalIconSolid,
-  UserIcon as UserIconSolid,
 } from 'react-native-heroicons/solid';
 
 import HomeScreen from '../screens/HomeScreen';
 import ResourcesScreen from '../screens/ResourcesScreen';
 import MentorshipScreen from '../screens/MentorshipScreen';
 import MoreScreen from '../screens/MoreScreen';
-import ProfileScreen from '../screens/ProfileScreen';
 import { TabParamList } from '../types/navigation';
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -61,10 +58,6 @@ export default function TabNavigator() {
               IconComponent = AcademicCapIcon;
               IconComponentSolid = AcademicCapIconSolid;
               break;
-            case 'Profile':
-              IconComponent = UserIcon;
-              IconComponentSolid = UserIconSolid;
-              break;
             case 'More':
               IconComponent = EllipsisHorizontalIcon;
               IconComponentSolid = EllipsisHorizontalIconSolid;
@@ -93,11 +86,6 @@ export default function TabNavigator() {
         name="Mentorship" 
         component={MentorshipScreen}
         options={{ tabBarLabel: 'Mentorship' }}
-      />
-      <Tab.Screen 
-        name="Profile" 
-        component={ProfileScreen}
-        options={{ tabBarLabel: 'Profile' }}
       />
       <Tab.Screen 
         name="More" 

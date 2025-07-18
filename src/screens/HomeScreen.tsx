@@ -70,7 +70,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   };
 
   const handleProfilePress = () => {
-    navigation.navigate('Home', { screen: 'Profile' });
+    // Navigate to a profile screen or modal
+    // For now, we can navigate to More screen or create a separate profile screen
+    navigation.navigate('Home', { screen: 'More' });
   };
 
   const handleLoadMore = () => {

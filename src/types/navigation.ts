@@ -22,7 +22,6 @@ export type TabParamList = {
   Home: undefined;
   Resources: undefined;
   Mentorship: undefined;
-  Profile: undefined;
   More: undefined;
 };
 
@@ -40,7 +39,6 @@ export type TabScreenProps<T extends keyof TabParamList> =
 export type LibraryDetailsScreenProps = RootStackScreenProps<'LibraryDetails'>;
 export type BookingScreenProps = RootStackScreenProps<'Booking'>;
 export type HomeScreenProps = TabScreenProps<'Home'>;
-export type ProfileScreenProps = TabScreenProps<'Profile'>;
 export type ResourcesScreenProps = TabScreenProps<'Resources'>;
 export type MentorshipScreenProps = TabScreenProps<'Mentorship'>;
 export type MoreScreenProps = TabScreenProps<'More'>;

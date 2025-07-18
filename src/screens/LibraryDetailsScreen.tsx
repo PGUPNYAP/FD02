@@ -235,34 +235,34 @@ export default function LibraryDetailsScreen({ navigation, route }: LibraryDetai
             </View>
 
             {/* Action Buttons */}
-            <View className="flex-row space-x-3">
+            <View className="flex-row justify-between space-x-2">
               <Pressable
                 onPress={handleCall}
-                className="flex-1 bg-green-600 py-3 rounded-xl flex-row items-center justify-center shadow-sm"
+                className="flex-1 bg-green-600 py-2.5 px-3 rounded-lg flex-row items-center justify-center shadow-sm"
                 android_ripple={{ color: '#16a34a' }}
               >
-                <PhoneIcon size={18} color="white" />
-                <Text className="ml-2 text-white font-semibold">Call</Text>
+                <PhoneIcon size={16} color="white" />
+                <Text className="ml-1.5 text-white font-medium text-sm">Call</Text>
               </Pressable>
 
               {library.whatsAppNumber && (
                 <Pressable
                   onPress={handleWhatsApp}
-                  className="flex-1 bg-green-500 py-3 rounded-xl flex-row items-center justify-center shadow-sm"
+                  className="flex-1 bg-green-500 py-2.5 px-3 rounded-lg flex-row items-center justify-center shadow-sm mx-1"
                   android_ripple={{ color: '#22c55e' }}
                 >
-                  <WhatsAppIcon size={18} color="white" />
-                  <Text className="ml-2 text-white font-semibold">WhatsApp</Text>
+                  <WhatsAppIcon size={16} color="white" />
+                  <Text className="ml-1.5 text-white font-medium text-sm">WhatsApp</Text>
                 </Pressable>
               )}
 
               <Pressable
                 onPress={handleDirections}
-                className="flex-1 bg-blue-600 py-3 rounded-xl flex-row items-center justify-center shadow-sm"
+                className="flex-1 bg-blue-600 py-2.5 px-3 rounded-lg flex-row items-center justify-center shadow-sm"
                 android_ripple={{ color: '#2563eb' }}
               >
-                <MapPinIcon size={18} color="white" />
-                <Text className="ml-2 text-white font-semibold">Directions</Text>
+                <MapPinIcon size={16} color="white" />
+                <Text className="ml-1.5 text-white font-medium text-sm">Directions</Text>
               </Pressable>
             </View>
           </View>

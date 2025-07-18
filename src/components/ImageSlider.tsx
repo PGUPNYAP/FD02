@@ -4,7 +4,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   interpolate,
-  Extrapolate,
+  Extrapolation,
 } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
@@ -87,14 +87,14 @@ export default function ImageSlider({
                 scrollX.value,
                 inputRange,
                 [0.3, 1, 0.3],
-                Extrapolate.CLAMP
+                Extrapolation.CLAMP
               );
               
               const scale = interpolate(
                 scrollX.value,
                 inputRange,
                 [0.8, 1.2, 0.8],
-                Extrapolate.CLAMP
+                Extrapolation.CLAMP
               );
 
               return {

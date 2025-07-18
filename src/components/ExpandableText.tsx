@@ -16,14 +16,24 @@ export default function ExpandableText({
 }: ExpandableTextProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showReadMore, setShowReadMore] = useState(false);
+  const [textHeight, setTextHeight] = useState(0);
+  const [fullTextHeight, setFullTextHeight] = useState(0);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
   };
 
   const onTextLayout = (e: any) => {
-    if (e.nativeEvent.lines.length > numberOfLines && !showReadMore) {
-      setShowReadMore(true);
+    if (!showReadMore) {
+      const { height } = e.nativeEvent;
+      if (!isExpanded) {
+        setTextHeight(height);
+      } else {
+        setFullTextHeight(height);
+        if (height > textHeight) {
+          setShowReadMore(true);
+        }
+      }
     }
   };
 
