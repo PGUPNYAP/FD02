@@ -17,10 +17,12 @@ export const useLibraries = (city: string, enabled = true) => {
       const { page, totalPages } = lastPage.pagination;
       return page < totalPages ? page + 1 : undefined;
     },
+    initialPageParam: 1, // ✅ Required in TanStack React Query v5+
     enabled: enabled && !!city,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000,
   });
 };
+
 
 export const useLibraryDetails = (libraryId: string, enabled = true) => {
   return useQuery({

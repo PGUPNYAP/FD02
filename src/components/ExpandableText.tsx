@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
 
 interface ExpandableTextProps {
@@ -8,46 +8,49 @@ interface ExpandableTextProps {
   containerStyle?: string;
 }
 
-export default function ExpandableText({ 
-  text, 
-  numberOfLines = 3, 
-  textStyle = "text-gray-700 leading-6",
-  containerStyle = "bg-gray-50 p-4 rounded-xl"
+export default function ExpandableText({
+  text,
+  numberOfLines = 10,
+  textStyle = 'text-gray-700 leading-6',
+  containerStyle = 'bg-gray-50 p-4 rounded-xl'
 }: ExpandableTextProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showReadMore, setShowReadMore] = useState(false);
-  const [textHeight, setTextHeight] = useState(0);
-  const [fullTextHeight, setFullTextHeight] = useState(0);
+  const [shouldShowReadMore, setShouldShowReadMore] = useState(false);
+  const [hasMeasured, setHasMeasured] = useState(false);
 
-  const toggleExpanded = () => {
-    setIsExpanded(!isExpanded);
-  };
+  const hiddenTextRef = useRef<Text>(null);
 
-  const onTextLayout = (e: any) => {
-    if (!showReadMore) {
-      const { height } = e.nativeEvent;
-      if (!isExpanded) {
-        setTextHeight(height);
-      } else {
-        setFullTextHeight(height);
-        if (height > textHeight) {
-          setShowReadMore(true);
-        }
-      }
+  const handleTextLayout = (e: any) => {
+    if (hasMeasured) return;
+
+    const lineCount = e.nativeEvent.lines.length;
+    if (lineCount > numberOfLines) {
+      setShouldShowReadMore(true);
     }
+    setHasMeasured(true);
   };
 
   return (
     <View className={containerStyle}>
+      {/* Hidden text for measuring actual lines */}
       <Text
-        className={textStyle}
-        numberOfLines={isExpanded ? undefined : numberOfLines}
-        onTextLayout={onTextLayout}
+        className={`${textStyle} absolute opacity-0`}
+        onTextLayout={handleTextLayout}
+        numberOfLines={undefined}
       >
         {text}
       </Text>
-      {showReadMore && (
-        <Pressable onPress={toggleExpanded} className="mt-2">
+
+      {/* Visible text */}
+      <Text
+        className={textStyle}
+        numberOfLines={isExpanded ? undefined : numberOfLines}
+      >
+        {text}
+      </Text>
+
+      {shouldShowReadMore && (
+        <Pressable onPress={() => setIsExpanded(!isExpanded)} className="mt-2">
           <Text className="text-blue-600 font-medium text-sm">
             {isExpanded ? 'Show less' : 'Read more'}
           </Text>

@@ -71,7 +71,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
   const handleProfilePress = () => {
     // Navigate to More tab in the tab navigator
-    navigation.navigate('More');
+    navigation.navigate('Profile');
   };
 
   const handleLoadMore = () => {

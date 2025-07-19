@@ -273,7 +273,7 @@ export default function LibraryDetailsScreen({ navigation, route }: LibraryDetai
               <Text className="text-lg font-semibold text-gray-800 mb-3 px-1">About</Text>
               <ExpandableText 
                 text={library.description}
-                numberOfLines={3}
+                numberOfLines={10}
                 containerStyle="bg-white p-5 rounded-2xl shadow-sm border border-gray-100"
                 textStyle="text-gray-700 leading-6"
               />
