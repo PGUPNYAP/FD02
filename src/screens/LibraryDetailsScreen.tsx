@@ -18,18 +18,22 @@ import {
   ShareIcon,
   StarIcon,
   ChatBubbleLeftRightIcon,
+  PlusIcon,
 } from 'react-native-heroicons/outline';
 import { ChatBubbleLeftRightIcon as WhatsAppIcon } from 'react-native-heroicons/solid';
 import { useLibraryDetails } from '../hooks/useLibraries';
+import { reviewApi } from '../services/api';
 import { Review, FAQ, Library } from '../types/api';
 import { LibraryDetailsScreenProps } from '../types/navigation';
 import ImageSlider from '../components/ImageSlider';
 import ExpandableText from '../components/ExpandableText';
 import FacilityIcon from '../components/FacilityIcon';
+import ReviewForm from '../components/ReviewForm';
 
 export default function LibraryDetailsScreen({ navigation, route }: LibraryDetailsScreenProps) {
   const { libraryId } = route.params;
   const { data: library, isLoading, error } = useLibraryDetails(libraryId);
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
   const handleCall = () => {
     if (library?.contactNumber) {
@@ -75,6 +79,26 @@ export default function LibraryDetailsScreen({ navigation, route }: LibraryDetai
         'Library not available',
         'Unable to proceed with booking because library details are not loaded.'
       );
+    }
+  };
+
+  const handlePlanPress = (plan: any) => {
+    if (library) {
+      navigation.navigate('Booking', { library, selectedPlan: plan });
+    }
+  };
+
+  const handleSubmitReview = async (reviewData: { stars: number; comment: string }) => {
+    try {
+      await reviewApi.createReview({
+        studentId: 'stu-1', // Temporary student ID
+        libraryId: library!.id,
+        stars: reviewData.stars,
+        comment: reviewData.comment || undefined,
+      });
+      Alert.alert('Success', 'Thank you for your review!');
+    } catch (error) {
+      throw error;
     }
   };
 
@@ -294,7 +318,12 @@ export default function LibraryDetailsScreen({ navigation, route }: LibraryDetai
           <View className="mb-6">
             <Text className="text-lg font-semibold text-gray-800 mb-3 px-1">Subscription Plans</Text>
             {library.plans.map((plan) => (
-              <View key={plan.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-3">
+              <Pressable 
+                key={plan.id} 
+                onPress={() => handlePlanPress(plan)}
+                className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-3"
+                android_ripple={{ color: '#f3f4f6' }}
+              >
                 <View className="flex-row justify-between items-center">
                   <View className="flex-1">
                     <Text className="font-bold text-gray-900 text-lg">{plan.planName}</Text>
@@ -314,13 +343,23 @@ export default function LibraryDetailsScreen({ navigation, route }: LibraryDetai
                     <Text className="text-xs text-gray-500">per {plan.planType}</Text>
                   </View>
                 </View>
-              </View>
+              </Pressable>
             ))}
           </View>
 
           {/* Reviews */}
           <View className="mb-6">
-            <Text className="text-lg font-semibold text-gray-800 mb-3 px-1">Reviews</Text>
+            <View className="flex-row justify-between items-center mb-3 px-1">
+              <Text className="text-lg font-semibold text-gray-800">Reviews</Text>
+              <Pressable
+                onPress={() => setShowReviewForm(true)}
+                className="flex-row items-center bg-blue-600 px-3 py-2 rounded-lg"
+                android_ripple={{ color: '#2563eb' }}
+              >
+                <PlusIcon size={16} color="white" />
+                <Text className="text-white font-medium ml-1 text-sm">Add Review</Text>
+              </Pressable>
+            </View>
             {renderReviews(library.reviews)}
           </View>
 
@@ -358,6 +397,14 @@ export default function LibraryDetailsScreen({ navigation, route }: LibraryDetai
             </Text>
           </Pressable>
         </View>
+
+        {/* Review Form Modal */}
+        <ReviewForm
+          isVisible={showReviewForm}
+          onClose={() => setShowReviewForm(false)}
+          onSubmit={handleSubmitReview}
+          libraryName={library.libraryName}
+        />
       </SafeAreaView>
     </>
   );

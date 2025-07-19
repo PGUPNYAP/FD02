@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Location, LibrariesResponse, Library, BookingRequest } from '../types/api';
+import { Location, LibrariesResponse, Library, BookingRequest, ReviewRequest } from '../types/api';
 
 // API Configuration
 const BASE_URL = 'http://10.0.2.2:3001/api'; // Android emulator
@@ -46,22 +46,22 @@ export const libraryApi = {
   },
 };
 
-// Mock booking API (since backend doesn't have booking endpoints)
+// Booking API
 export const bookingApi = {
-  createBooking: async (booking: BookingRequest): Promise<{ success: boolean; bookingId: string }> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return {
-      success: true,
-      bookingId: `booking_${Date.now()}`,
-    };
-  },
+  createBooking: (booking: BookingRequest): Promise<{ success: boolean; data: any; message: string }> =>
+    api.post('/bookings', booking).then(res => res.data),
 
   getUserBookings: async (userId: string): Promise<Booking[]> => {
     // Mock data for user bookings
     await new Promise(resolve => setTimeout(resolve, 500));
     return [];
   },
+};
+
+// Review API
+export const reviewApi = {
+  createReview: (review: ReviewRequest): Promise<{ success: boolean; data: any; message: string }> =>
+    api.post('/reviews', review).then(res => res.data),
 };
 
 export default api;

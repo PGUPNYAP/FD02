@@ -9,11 +9,13 @@ export type RootStackParamList = {
   Login: undefined;
   Signup: undefined;
   Home: undefined;
+  Profile: undefined;
   LibraryDetails: {
     libraryId: string;
   };
   Booking: {
     library: Library;
+    selectedPlan?: LibraryPlan;
   };
 };
 

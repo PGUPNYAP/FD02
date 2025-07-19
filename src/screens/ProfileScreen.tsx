@@ -14,11 +14,12 @@ import {
   BellIcon,
   QuestionMarkCircleIcon,
   Cog6ToothIcon,
+  ArrowLeftIcon,
 } from 'react-native-heroicons/outline';
-import { TabScreenProps } from '../types/navigation';
+import { RootStackScreenProps } from '../types/navigation';
 
 
-export default function ProfileScreen({ navigation }: TabScreenProps<'More'>) {
+export default function ProfileScreen({ navigation }: RootStackScreenProps<'Profile'>) {
   // Mock user data
   const user = {
     name: 'Arav Prajapati',
@@ -226,6 +227,18 @@ export default function ProfileScreen({ navigation }: TabScreenProps<'More'>) {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
+      {/* Header */}
+      <View className="flex-row items-center p-4 bg-white border-b border-gray-200">
+        <Pressable
+          onPress={() => navigation.goBack()}
+          className="p-2 rounded-full mr-3"
+          android_ripple={{ color: '#f3f4f6' }}
+        >
+          <ArrowLeftIcon size={24} color="#374151" />
+        </Pressable>
+        <Text className="text-lg font-semibold text-gray-800">Profile</Text>
+      </View>
+
       <ScrollView showsVerticalScrollIndicator={false}>
         {renderProfileHeader()}
         {renderCurrentSubscription()}

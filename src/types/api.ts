@@ -118,6 +118,13 @@ export interface BookingRequest {
   totalAmount: number;
 }
 
+export interface ReviewRequest {
+  studentId: string;
+  libraryId: string;
+  stars: number;
+  comment?: string;
+}
+
 export interface Booking {
   id: string;
   status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED';

@@ -8,18 +8,21 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { ArrowLeftIcon, CheckIcon } from 'react-native-heroicons/outline';
+import { ArrowLeftIcon, CheckIcon, ChevronDownIcon } from 'react-native-heroicons/outline';
+import { Picker } from '@react-native-picker/picker';
 import { Library, LibraryPlan, TimeSlot, Seat } from '../types/api';
 import { bookingApi } from '../services/api';
 import { BookingScreenProps } from '../types/navigation';
+import BookingModal from '../components/BookingModal';
 
 
 export default function BookingScreen({ navigation, route }: BookingScreenProps) {
-  const { library } = route.params;
-  const [selectedPlan, setSelectedPlan] = useState<LibraryPlan | null>(null);
+  const { library, selectedPlan: preSelectedPlan } = route.params;
+  const [selectedPlan, setSelectedPlan] = useState<LibraryPlan | null>(preSelectedPlan || null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
-  const [selectedSeat, setSelectedSeat] = useState<Seat | null>(null);
+  const [selectedSeatNumber, setSelectedSeatNumber] = useState<string>('');
   const [isBooking, setIsBooking] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
   // Mock data for time slots and seats (since backend doesn't provide these endpoints)
   const mockTimeSlots: TimeSlot[] = [
@@ -52,29 +55,39 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
     },
   ];
 
-  const mockSeats: Seat[] = [
-    { id: 'seat-1', seatNumber: 'A1', status: 'AVAILABLE', isActive: true },
-    { id: 'seat-2', seatNumber: 'A2', status: 'OCCUPIED', isActive: true },
-    { id: 'seat-3', seatNumber: 'A3', status: 'AVAILABLE', isActive: true },
-    { id: 'seat-4', seatNumber: 'B1', status: 'AVAILABLE', isActive: true },
-    { id: 'seat-5', seatNumber: 'B2', status: 'MAINTENANCE', isActive: false },
-    { id: 'seat-6', seatNumber: 'B3', status: 'AVAILABLE', isActive: true },
-  ];
+  // Generate seat numbers based on total seats
+  const generateSeatNumbers = (totalSeats: number): string[] => {
+    const seats: string[] = [];
+    for (let i = 1; i <= totalSeats; i++) {
+      seats.push(`Seat ${i}`);
+    }
+    return seats;
+  };
 
-  const handleBooking = async () => {
-    if (!selectedPlan || !selectedTimeSlot || !selectedSeat) {
-      Alert.alert('Incomplete Selection', 'Please select a plan, time slot, and seat.');
+  const availableSeats = generateSeatNumbers(library.totalSeats);
+
+  const handleBookNowPress = () => {
+    if (!selectedPlan || !selectedTimeSlot || !selectedSeatNumber) {
+      Alert.alert('Incomplete Selection', 'Please select a plan, time slot, and seat number.');
       return;
     }
+    setShowBookingModal(true);
+  };
+
+  const handleBookingSubmit = async (name: string) => {
+    if (!selectedPlan || !selectedTimeSlot || !selectedSeatNumber) return;
 
     setIsBooking(true);
     try {
+      // Generate temporary student ID from name
+      const studentId = `temp_${name.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`;
+      
       const bookingData = {
-        studentId: 'current-user-id', // This would come from auth context
+        studentId,
         libraryId: library.id,
         planId: selectedPlan.id,
-        timeSlotId: selectedTimeSlot.id,
-        seatId: selectedSeat.id,
+        timeSlotId: selectedTimeSlot.id, 
+        seatId: `seat_${selectedSeatNumber.replace(/\s+/g, '_').toLowerCase()}`, // Generate seat ID
         totalAmount: selectedPlan.price,
       };
 
@@ -83,7 +96,7 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
       if (result.success) {
         Alert.alert(
           'Booking Confirmed!',
-          `Your booking has been confirmed. Booking ID: ${result.bookingId}`,
+          `Your booking has been confirmed for ${selectedSeatNumber} at ${library.libraryName}.`,
           [
             {
               text: 'OK',
@@ -185,65 +198,28 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
   const renderSeatSelection = () => (
     <View className="mb-6">
       <Text className="text-lg font-semibold text-gray-800 mb-3">
-        Select Seat
+        Select Seat Number
       </Text>
-      <View className="flex-row flex-wrap">
-        {mockSeats.map((seat) => (
-          <Pressable
-            key={seat.id}
-            onPress={() => seat.status === 'AVAILABLE' && setSelectedSeat(seat)}
-            disabled={seat.status !== 'AVAILABLE'}
-            className={`w-16 h-16 rounded-lg border-2 mr-3 mb-3 items-center justify-center ${
-              selectedSeat?.id === seat.id
-                ? 'border-blue-600 bg-blue-50'
-                : seat.status === 'AVAILABLE'
-                ? 'border-gray-200 bg-white'
-                : seat.status === 'OCCUPIED'
-                ? 'border-red-200 bg-red-50'
-                : 'border-gray-200 bg-gray-100'
-            }`}
-            android_ripple={{ color: '#f3f4f6' }}
-          >
-            <Text
-              className={`font-medium ${
-                seat.status === 'AVAILABLE'
-                  ? 'text-gray-800'
-                  : seat.status === 'OCCUPIED'
-                  ? 'text-red-600'
-                  : 'text-gray-400'
-              }`}
-            >
-              {seat.seatNumber}
-            </Text>
-            {selectedSeat?.id === seat.id && (
-              <View className="absolute -top-1 -right-1">
-                <CheckIcon size={12} color="#2563eb" />
-              </View>
-            )}
-          </Pressable>
-        ))}
+      <View className="border border-gray-300 rounded-lg bg-white">
+        <Picker
+          selectedValue={selectedSeatNumber}
+          onValueChange={(itemValue) => setSelectedSeatNumber(itemValue)}
+          style={{ height: 50 }}
+        >
+          <Picker.Item label="Choose a seat..." value="" />
+          {availableSeats.map((seat, index) => (
+            <Picker.Item key={index} label={seat} value={seat} />
+          ))}
+        </Picker>
       </View>
-      
-      {/* Legend */}
-      <View className="flex-row justify-around mt-4">
-        <View className="flex-row items-center">
-          <View className="w-4 h-4 bg-white border-2 border-gray-200 rounded mr-2" />
-          <Text className="text-xs text-gray-600">Available</Text>
-        </View>
-        <View className="flex-row items-center">
-          <View className="w-4 h-4 bg-red-50 border-2 border-red-200 rounded mr-2" />
-          <Text className="text-xs text-gray-600">Occupied</Text>
-        </View>
-        <View className="flex-row items-center">
-          <View className="w-4 h-4 bg-gray-100 border-2 border-gray-200 rounded mr-2" />
-          <Text className="text-xs text-gray-600">Maintenance</Text>
-        </View>
-      </View>
+      <Text className="text-xs text-gray-500 mt-2">
+        Total seats available: {library.totalSeats}
+      </Text>
     </View>
   );
 
   const renderBookingSummary = () => {
-    if (!selectedPlan || !selectedTimeSlot || !selectedSeat) return null;
+    if (!selectedPlan || !selectedTimeSlot || !selectedSeatNumber) return null;
 
     return (
       <View className="bg-gray-50 p-4 rounded-lg mb-6">
@@ -267,7 +243,7 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
           </View>
           <View className="flex-row justify-between">
             <Text className="text-gray-600">Seat:</Text>
-            <Text className="font-medium text-gray-800">{selectedSeat.seatNumber}</Text>
+            <Text className="font-medium text-gray-800">{selectedSeatNumber}</Text>
           </View>
           <View className="border-t border-gray-200 pt-2 mt-2">
             <View className="flex-row justify-between">
@@ -312,24 +288,34 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
       {/* Book Button */}
       <View className="p-4 border-t border-gray-200">
         <Pressable
-          onPress={handleBooking}
-          disabled={!selectedPlan || !selectedTimeSlot || !selectedSeat || isBooking}
+          onPress={handleBookNowPress}
+          disabled={!selectedPlan || !selectedTimeSlot || !selectedSeatNumber || isBooking}
           className={`py-4 rounded-lg ${
-            selectedPlan && selectedTimeSlot && selectedSeat && !isBooking
+            selectedPlan && selectedTimeSlot && selectedSeatNumber && !isBooking
               ? 'bg-blue-600'
               : 'bg-gray-300'
           }`}
           android_ripple={{ color: '#2563eb' }}
         >
-          {isBooking ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text className="text-white text-center font-semibold text-lg">
-              Confirm Booking
-            </Text>
-          )}
+          <Text className="text-white text-center font-semibold text-lg">
+            Book Now
+          </Text>
         </Pressable>
       </View>
+
+      {/* Booking Modal */}
+      <BookingModal
+        isVisible={showBookingModal}
+        onClose={() => setShowBookingModal(false)}
+        onSubmit={handleBookingSubmit}
+        bookingDetails={{
+          libraryName: library.libraryName,
+          planName: selectedPlan?.planName || '',
+          seatNumber: selectedSeatNumber,
+          timeSlot: selectedTimeSlot ? `${selectedTimeSlot.startTime} - ${selectedTimeSlot.endTime}` : '',
+          amount: selectedPlan?.price || 0,
+        }}
+      />
     </SafeAreaView>
   );
 }
