@@ -24,6 +24,7 @@ import { ChatBubbleLeftRightIcon as WhatsAppIcon } from 'react-native-heroicons/
 import { useLibraryDetails } from '../hooks/useLibraries';
 import { reviewApi } from '../services/api';
 import { Review, FAQ, Library } from '../types/api';
+import { useStorage, STORAGE_KEYS } from '../hooks/useStorage';
 import { LibraryDetailsScreenProps } from '../types/navigation';
 import ImageSlider from '../components/ImageSlider';
 import ExpandableText from '../components/ExpandableText';
@@ -34,6 +35,9 @@ export default function LibraryDetailsScreen({ navigation, route }: LibraryDetai
   const { libraryId } = route.params;
   const { data: library, isLoading, error } = useLibraryDetails(libraryId);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const { getItem } = useStorage();
+
+  const currentUser = getItem(STORAGE_KEYS.CURRENT_USER);
 
   const handleCall = () => {
     if (library?.contactNumber) {
@@ -89,9 +93,17 @@ export default function LibraryDetailsScreen({ navigation, route }: LibraryDetai
   };
 
   const handleSubmitReview = async (reviewData: { stars: number; comment: string }) => {
+    if (!currentUser) {
+      Alert.alert('Login Required', 'Please login to submit a review.', [
+        { text: 'Login', onPress: () => navigation.navigate('Login') },
+        { text: 'Cancel', style: 'cancel' }
+      ]);
+      return;
+    }
+
     try {
       await reviewApi.createReview({
-        studentId: 'stu-1', // Temporary student ID
+        studentId: currentUser.id,
         libraryId: library!.id,
         stars: reviewData.stars,
         comment: reviewData.comment || undefined,

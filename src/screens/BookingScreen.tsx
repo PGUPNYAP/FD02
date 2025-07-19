@@ -12,8 +12,8 @@ import { ArrowLeftIcon, CheckIcon, ChevronDownIcon } from 'react-native-heroicon
 import { Picker } from '@react-native-picker/picker';
 import { Library, LibraryPlan, TimeSlot, Seat } from '../types/api';
 import { bookingApi } from '../services/api';
+import { useStorage, STORAGE_KEYS } from '../hooks/useStorage';
 import { BookingScreenProps } from '../types/navigation';
-import BookingModal from '../components/BookingModal';
 
 
 export default function BookingScreen({ navigation, route }: BookingScreenProps) {
@@ -22,7 +22,9 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [selectedSeatNumber, setSelectedSeatNumber] = useState<string>('');
   const [isBooking, setIsBooking] = useState(false);
-  const [showBookingModal, setShowBookingModal] = useState(false);
+  const { getItem, setItem } = useStorage();
+
+  const currentUser = getItem(STORAGE_KEYS.CURRENT_USER);
 
   // Mock data for time slots and seats (since backend doesn't provide these endpoints)
   const mockTimeSlots: TimeSlot[] = [
@@ -67,23 +69,29 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
   const availableSeats = generateSeatNumbers(library.totalSeats);
 
   const handleBookNowPress = () => {
+    if (!currentUser) {
+      Alert.alert('Login Required', 'Please login to book a seat.', [
+        { text: 'Login', onPress: () => navigation.navigate('Login') },
+        { text: 'Cancel', style: 'cancel' }
+      ]);
+      return;
+    }
+
     if (!selectedPlan || !selectedTimeSlot || !selectedSeatNumber) {
       Alert.alert('Incomplete Selection', 'Please select a plan, time slot, and seat number.');
       return;
     }
-    setShowBookingModal(true);
+
+    handleBookingSubmit();
   };
 
-  const handleBookingSubmit = async (name: string) => {
-    if (!selectedPlan || !selectedTimeSlot || !selectedSeatNumber) return;
-
+  const handleBookingSubmit = async () => {
+    if (!selectedPlan || !selectedTimeSlot || !selectedSeatNumber || !currentUser) return;
+    
     setIsBooking(true);
     try {
-      // Generate temporary student ID from name
-      const studentId = `temp_${name.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`;
-      
       const bookingData = {
-        studentId,
+        studentId: currentUser.id,
         libraryId: library.id,
         planId: selectedPlan.id,
         timeSlotId: selectedTimeSlot.id, 
@@ -94,6 +102,20 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
       const result = await bookingApi.createBooking(bookingData);
       
       if (result.success) {
+        // Save booking to user's history
+        const bookingHistory = getItem(STORAGE_KEYS.BOOKING_HISTORY) || [];
+        const newBooking = {
+          id: result.data.id || `booking_${Date.now()}`,
+          libraryName: library.libraryName,
+          planName: selectedPlan.planName,
+          seatNumber: selectedSeatNumber,
+          timeSlot: `${selectedTimeSlot.startTime} - ${selectedTimeSlot.endTime}`,
+          amount: selectedPlan.price,
+          date: new Date().toISOString(),
+          status: 'Active'
+        };
+        setItem(STORAGE_KEYS.BOOKING_HISTORY, [...bookingHistory, newBooking]);
+
         Alert.alert(
           'Booking Confirmed!',
           `Your booking has been confirmed for ${selectedSeatNumber} at ${library.libraryName}.`,
@@ -297,25 +319,15 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
           }`}
           android_ripple={{ color: '#2563eb' }}
         >
-          <Text className="text-white text-center font-semibold text-lg">
-            Book Now
-          </Text>
+          {isBooking ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text className="text-white text-center font-semibold text-lg">
+              Book Now
+            </Text>
+          )}
         </Pressable>
       </View>
-
-      {/* Booking Modal */}
-      <BookingModal
-        isVisible={showBookingModal}
-        onClose={() => setShowBookingModal(false)}
-        onSubmit={handleBookingSubmit}
-        bookingDetails={{
-          libraryName: library.libraryName,
-          planName: selectedPlan?.planName || '',
-          seatNumber: selectedSeatNumber,
-          timeSlot: selectedTimeSlot ? `${selectedTimeSlot.startTime} - ${selectedTimeSlot.endTime}` : '',
-          amount: selectedPlan?.price || 0,
-        }}
-      />
     </SafeAreaView>
   );
 }

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Navigation from './src/navigation/Navigation';
-import { getStoredUser } from './src/utils/storage';
+import { useStorage, STORAGE_KEYS } from './src/hooks/useStorage';
 
 import SplashScreen from './src/screens/SplashScreen';
 import './global.css';
@@ -13,13 +13,12 @@ const queryClient = new QueryClient();
 export default function App() {
   const [checking, setChecking] = useState(true);
   const [initialRoute, setInitialRoute] = useState<'Login' | 'Home'>('Login');
+  const { getItem } = useStorage();
 
   useEffect(() => {
-
-
     const checkUser = async () => {
       try {
-        const user = await getStoredUser();
+        const user = getItem(STORAGE_KEYS.CURRENT_USER);
         if (user) {
           setInitialRoute('Home');
         }
@@ -39,8 +38,7 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Pass initialRoute to your Navigation so it can decide start screen */}
-      <Navigation />
+      <Navigation initialRoute={initialRoute} />
     </QueryClientProvider>
   );
 }

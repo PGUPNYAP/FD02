@@ -49,7 +49,8 @@ export const useStorage = () => {
 // Storage keys
 export const STORAGE_KEYS = {
   SELECTED_LOCATION: 'selected_location',
-  USER_PROFILE: 'user_profile',
+  CURRENT_USER: 'current_user',
+  ALL_USERS: 'all_users',
   BOOKING_HISTORY: 'booking_history',
   FAVORITES: 'favorites',
 };

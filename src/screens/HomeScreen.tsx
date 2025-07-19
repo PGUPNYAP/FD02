@@ -28,11 +28,12 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const { getItem } = useStorage();
 
-  // Mock user data - replace with actual user context
-  const user = {
-    name: 'Arav Prajapati',
+  // Get current user from storage
+  const currentUser = getItem(STORAGE_KEYS.CURRENT_USER);
+  const user = currentUser ? {
+    name: currentUser.name,
     profileImage: null,
-  };
+  } : null;
 
   // Load saved location on mount
   useEffect(() => {
@@ -70,8 +71,11 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   };
 
   const handleProfilePress = () => {
-    // Navigate to More tab in the tab navigator
-    navigation.navigate('Profile');
+    if (currentUser) {
+      navigation.navigate('Profile');
+    } else {
+      navigation.navigate('Login');
+    }
   };
 
   const handleLoadMore = () => {

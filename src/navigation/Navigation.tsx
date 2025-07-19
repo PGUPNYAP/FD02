@@ -13,12 +13,16 @@ import { navigationRef } from '../utils/NavigationUtil';
 import { RootStackParamList } from '../types/navigation';
 import ProfileScreen from '../screens/ProfileScreen';
 
+interface NavigationProps {
+  initialRoute: 'Login' | 'Home';
+}
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export default function Navigation() {
+export default function Navigation({ initialRoute }: NavigationProps) {
   return (
     <NavigationContainer ref={navigationRef}>
-      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName={initialRoute === 'Login' ? 'Login' : 'Splash'} screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Signup" component={SignupScreen} />

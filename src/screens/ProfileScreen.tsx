@@ -17,45 +17,38 @@ import {
   ArrowLeftIcon,
 } from 'react-native-heroicons/outline';
 import { RootStackScreenProps } from '../types/navigation';
+import { useStorage, STORAGE_KEYS } from '../hooks/useStorage';
 
 
 export default function ProfileScreen({ navigation }: RootStackScreenProps<'Profile'>) {
-  // Mock user data
+  const { getItem, removeItem } = useStorage();
+  
+  // Get current user from storage
+  const currentUser = getItem(STORAGE_KEYS.CURRENT_USER);
+  const bookingHistory = getItem(STORAGE_KEYS.BOOKING_HISTORY) || [];
+
+  if (!currentUser) {
+    // If no user is logged in, redirect to login
+    React.useEffect(() => {
+      navigation.replace('Login');
+    }, []);
+    return null;
+  }
+
   const user = {
-    name: 'Arav Prajapati',
-    email: 'aravmkp156@gmail.com',
-    phone: '+91 6386743048',
+    name: currentUser.name,
+    email: currentUser.email,
+    phone: '+91 XXXXXXXXXX', // You can add phone to user data later
     profileImage: null,
   };
 
-  // Mock current subscription
-  const currentSubscription = {
-    libraryName: 'Shanti Library',
-    planName: 'Monthly Plan',
-    validUntil: '2024-02-15',
-    seatNumber: 'A1',
-    status: 'Active',
-  };
+  // Get current active subscription from booking history
+  const currentSubscription = bookingHistory.find((booking: any) => booking.status === 'Active');
 
-  // Mock booking history
-  const bookingHistory = [
-    {
-      id: '1',
-      libraryName: 'Shanti Library',
-      planName: 'Monthly Plan',
-      date: '2024-01-15',
-      amount: 2500,
-      status: 'Active',
-    },
-    {
-      id: '2',
-      libraryName: 'Kripa Library',
-      planName: 'Weekly Plan',
-      date: '2024-01-01',
-      amount: 700,
-      status: 'Completed',
-    },
-  ];
+  const handleLogout = () => {
+    removeItem(STORAGE_KEYS.CURRENT_USER);
+    navigation.replace('Login');
+  };
 
   const menuItems = [
     {
@@ -81,6 +74,12 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
       title: 'Settings',
       subtitle: 'App preferences and settings',
       onPress: () => {},
+    },
+    {
+      icon: ArrowLeftIcon,
+      title: 'Logout',
+      subtitle: 'Sign out of your account',
+      onPress: handleLogout,
     },
   ];
 
@@ -137,7 +136,7 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
               Seat: {currentSubscription.seatNumber}
             </Text>
             <Text className="text-sm text-gray-600">
-              Valid until: {currentSubscription.validUntil}
+              {new Date(booking.date).toLocaleDateString()}
             </Text>
           </View>
         </View>
