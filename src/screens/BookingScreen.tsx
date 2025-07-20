@@ -90,16 +90,16 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
     
     setIsBooking(true);
     try {
-      // Create a mock student ID since we don't have real student management
-      const mockStudentId = 'stu-1'; // Use the seeded student ID
+      // Use the seeded student ID that exists in your backend
+      const studentId = 'stu-1'; // This matches your backend seed data
       
       const bookingData = {
-        studentId: mockStudentId,
+        studentId: studentId,
         libraryId: library.id,
         planId: selectedPlan.id,
         timeSlotId: selectedTimeSlot.id, 
         seatId: `seat_${selectedSeatNumber.replace(/\s+/g, '_').toLowerCase()}`, // Generate seat ID
-        totalAmount: Number(selectedPlan.price),
+        totalAmount: parseFloat(selectedPlan.price.toString()),
       };
 
       console.log('Submitting booking data:', bookingData);

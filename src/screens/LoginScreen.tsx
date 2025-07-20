@@ -49,6 +49,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
           id: `user_${Date.now()}`,
           name: name.trim(),
           email: email.trim(),
+          studentId: 'stu-1', // Map to backend student ID for API calls
           createdAt: new Date().toISOString(),
         };
 

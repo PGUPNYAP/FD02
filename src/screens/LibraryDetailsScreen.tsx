@@ -102,11 +102,11 @@ export default function LibraryDetailsScreen({ navigation, route }: LibraryDetai
     }
 
     try {
-      // Create a mock student ID since we don't have real student management
-      const mockStudentId = 'stu-1'; // Use the seeded student ID
+      // Use the seeded student ID that exists in your backend
+      const studentId = 'stu-1'; // This matches your backend seed data
       
       const reviewRequest = {
-        studentId: mockStudentId,
+        studentId: studentId,
         libraryId: library!.id,
         stars: reviewData.stars,
         comment: reviewData.comment || undefined,
@@ -114,12 +114,7 @@ export default function LibraryDetailsScreen({ navigation, route }: LibraryDetai
 
       console.log('Submitting review data:', reviewRequest);
 
-      await reviewApi.createReview({
-        studentId: mockStudentId,
-        libraryId: library!.id,
-        stars: reviewData.stars,
-        comment: reviewData.comment || undefined,
-      });
+      await reviewApi.createReview(reviewRequest);
       Alert.alert('Success', 'Thank you for your review!');
     } catch (error) {
       console.error('Review submission error:', error);

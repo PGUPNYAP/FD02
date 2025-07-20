@@ -7,7 +7,7 @@ const BASE_URL = 'http://10.0.2.2:3001/api'; // Android emulator
 
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 15000, // Increased timeout
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -23,7 +23,6 @@ api.interceptors.request.use(
       baseURL: config.baseURL,
       fullURL: `${config.baseURL}${config.url}`,
       data: config.data,
-      headers: config.headers
     });
     return config;
   },
