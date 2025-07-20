@@ -2,8 +2,8 @@ import axios from 'axios';
 import { Location, LibrariesResponse, Library, BookingRequest, ReviewRequest } from '../types/api';
 
 // API Configuration
-const BASE_URL = 'http://10.0.2.2:3001/api'; // Android emulator
-// const BASE_URL = 'http://localhost:3001/api'; // iOS simulator
+const BASE_URL = 'http://10.0.2.2:3002/api'; // Android emulator - Updated to match your backend port
+// const BASE_URL = 'http://localhost:3002/api'; // iOS simulator
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -12,6 +12,30 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Add request interceptor for debugging
+api.interceptors.request.use(
+  (config) => {
+    console.log('API Request:', config.method?.toUpperCase(), config.url, config.data);
+    return config;
+  },
+  (error) => {
+    console.error('API Request Error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for debugging
+api.interceptors.response.use(
+  (response) => {
+    console.log('API Response:', response.status, response.data);
+    return response;
+  },
+  (error) => {
+    console.error('API Response Error:', error.response?.status, error.response?.data || error.message);
+    return Promise.reject(error);
+  }
+);
 
 // API Services
 export const libraryApi = {
@@ -62,6 +86,9 @@ export const bookingApi = {
 export const reviewApi = {
   createReview: (review: ReviewRequest): Promise<{ success: boolean; data: any; message: string }> =>
     api.post('/reviews', review).then(res => res.data),
+
+  getReviewsByLibrary: (libraryId: string): Promise<{ success: boolean; data: any[] }> =>
+    api.get(`/reviews/library/${libraryId}`).then(res => res.data),
 };
 
 export default api;

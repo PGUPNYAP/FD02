@@ -1,7 +1,7 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { CompositeScreenProps } from '@react-navigation/native';
-import { Library } from './api';
+import { Library, LibraryPlan } from './api';
 
 // Root Stack Navigator Types
 export type RootStackParamList = {

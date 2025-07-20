@@ -32,9 +32,7 @@ app.get('/', (req, res) => {
 // Routes
 // app.use('/api/students', studentRoutes);
 app.use('/api/library', libraryRouter);
-app.use("/api/librarians", 
-    // authMiddleware(["librarian"]),
-    librarianRoute);
+app.use('/api/librarians', librarianRoute);
 app.use('/api/bookings', libraryBookingRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/timeslots', timeSlotRoutes);

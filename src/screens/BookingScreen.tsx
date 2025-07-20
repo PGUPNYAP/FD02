@@ -90,14 +90,19 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
     
     setIsBooking(true);
     try {
+      // Create a mock student ID since we don't have real student management
+      const mockStudentId = 'stu-1'; // Use the seeded student ID
+      
       const bookingData = {
-        studentId: currentUser.id,
+        studentId: mockStudentId,
         libraryId: library.id,
         planId: selectedPlan.id,
         timeSlotId: selectedTimeSlot.id, 
         seatId: `seat_${selectedSeatNumber.replace(/\s+/g, '_').toLowerCase()}`, // Generate seat ID
-        totalAmount: selectedPlan.price,
+        totalAmount: Number(selectedPlan.price),
       };
+
+      console.log('Submitting booking data:', bookingData);
 
       const result = await bookingApi.createBooking(bookingData);
       
@@ -128,6 +133,7 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
         );
       }
     } catch (error) {
+      console.error('Booking submission error:', error);
       Alert.alert('Booking Failed', 'Something went wrong. Please try again.');
     } finally {
       setIsBooking(false);

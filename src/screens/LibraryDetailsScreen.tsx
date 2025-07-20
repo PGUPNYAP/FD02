@@ -102,14 +102,27 @@ export default function LibraryDetailsScreen({ navigation, route }: LibraryDetai
     }
 
     try {
+      // Create a mock student ID since we don't have real student management
+      const mockStudentId = 'stu-1'; // Use the seeded student ID
+      
+      const reviewRequest = {
+        studentId: mockStudentId,
+        libraryId: library!.id,
+        stars: reviewData.stars,
+        comment: reviewData.comment || undefined,
+      };
+
+      console.log('Submitting review data:', reviewRequest);
+
       await reviewApi.createReview({
-        studentId: currentUser.id,
+        studentId: mockStudentId,
         libraryId: library!.id,
         stars: reviewData.stars,
         comment: reviewData.comment || undefined,
       });
       Alert.alert('Success', 'Thank you for your review!');
     } catch (error) {
+      console.error('Review submission error:', error);
       throw error;
     }
   };

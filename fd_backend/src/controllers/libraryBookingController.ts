@@ -8,9 +8,29 @@ export const createSeatBooking = async (req: Request, res: Response) => {
   try {
     const { studentId, libraryId, planId, timeSlotId, seatId, totalAmount } = req.body;
 
+    console.log('Creating booking with data:', { studentId, libraryId, planId, timeSlotId, seatId, totalAmount });
+
     // Basic validation
     if (!studentId || !libraryId || !planId || !timeSlotId || !seatId || !totalAmount) {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    // Check if student exists
+    const student = await prisma.student.findUnique({ where: { id: studentId } });
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student not found' });
+    }
+
+    // Check if library exists
+    const library = await prisma.library.findUnique({ where: { id: libraryId } });
+    if (!library) {
+      return res.status(404).json({ success: false, message: 'Library not found' });
+    }
+
+    // Check if plan exists
+    const plan = await prisma.libraryPlan.findUnique({ where: { id: planId } });
+    if (!plan) {
+      return res.status(404).json({ success: false, message: 'Plan not found' });
     }
 
     // Check time slot capacity
@@ -21,9 +41,25 @@ export const createSeatBooking = async (req: Request, res: Response) => {
 
     // Check seat availability
     const seat = await prisma.seat.findUnique({ where: { id: seatId } });
-    if (!seat || seat.status !== SeatStatus.AVAILABLE) {
+    if (!seat) {
+      // If seat doesn't exist, create it dynamically
+      const newSeat = await prisma.seat.create({
+        data: {
+          id: seatId,
+          seatNumber: seatId.replace('seat_', '').replace(/_/g, ' '),
+          status: SeatStatus.AVAILABLE,
+          libraryId: libraryId,
+        }
+      });
+      console.log('Created new seat:', newSeat);
+    } else if (seat.status !== SeatStatus.AVAILABLE) {
       return res.status(409).json({ success: false, message: 'Seat not available' });
     }
+
+    // Calculate valid dates based on plan
+    const validFrom = new Date();
+    const validTo = new Date();
+    validTo.setDate(validTo.getDate() + plan.days);
 
     // Transactional booking
     const booking = await prisma.$transaction(async tx => {
@@ -35,8 +71,8 @@ export const createSeatBooking = async (req: Request, res: Response) => {
           planId,
           timeSlotId,
           seatId,
-          validFrom: slot.date,
-          validTo: slot.date,          // adjust if plan spans multiple days
+          validFrom,
+          validTo,
           totalAmount,
           status: BookingStatus.ACTIVE
         },
@@ -67,10 +103,11 @@ export const createSeatBooking = async (req: Request, res: Response) => {
       return newBooking;
     });
 
+    console.log('Booking created successfully:', booking);
     return res.status(201).json({ success: true, data: booking, message: 'Seat booked successfully' });
   } catch (error: any) {
     console.error('createSeatBooking error:', error);
-    return res.status(500).json({ success: false, message: 'Internal server error' });
+    return res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 };
 
