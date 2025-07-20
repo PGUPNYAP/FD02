@@ -6,30 +6,36 @@ const prisma = new PrismaClient();
 // POST /bookings
 export const createSeatBooking = async (req: Request, res: Response) => {
   try {
+    console.log('📅 Creating booking - Request body:', req.body);
+    console.log('📅 Request headers:', req.headers);
+    
     const { studentId, libraryId, planId, timeSlotId, seatId, totalAmount } = req.body;
 
-    console.log('Creating booking with data:', { studentId, libraryId, planId, timeSlotId, seatId, totalAmount });
 
     // Basic validation
     if (!studentId || !libraryId || !planId || !timeSlotId || !seatId || !totalAmount) {
+      console.log('❌ Missing required fields:', { studentId, libraryId, planId, timeSlotId, seatId, totalAmount });
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
 
     // Check if student exists
     const student = await prisma.student.findUnique({ where: { id: studentId } });
     if (!student) {
+      console.log('❌ Student not found:', studentId);
       return res.status(404).json({ success: false, message: 'Student not found' });
     }
 
     // Check if library exists
     const library = await prisma.library.findUnique({ where: { id: libraryId } });
     if (!library) {
+      console.log('❌ Library not found:', libraryId);
       return res.status(404).json({ success: false, message: 'Library not found' });
     }
 
     // Check if plan exists
     const plan = await prisma.libraryPlan.findUnique({ where: { id: planId } });
     if (!plan) {
+      console.log('❌ Plan not found:', planId);
       return res.status(404).json({ success: false, message: 'Plan not found' });
     }
 
@@ -103,10 +109,10 @@ export const createSeatBooking = async (req: Request, res: Response) => {
       return newBooking;
     });
 
-    console.log('Booking created successfully:', booking);
+    console.log('✅ Booking created successfully:', booking);
     return res.status(201).json({ success: true, data: booking, message: 'Seat booked successfully' });
   } catch (error: any) {
-    console.error('createSeatBooking error:', error);
+    console.error('🔥 createSeatBooking error:', error);
     return res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 };
