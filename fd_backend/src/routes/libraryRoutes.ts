@@ -6,8 +6,6 @@ const router = Router();
 
 router.get("/", getLibraries);      // GET all with filters, pagination
 router.get("/getLocations", getLocations); // GET all locations
-router.get("/:id", getLibraryById); // GET specific by ID
-
 router.post("/onboarding",onboardLibrarian)
 router.get("/:id", getLibraryById); // GET specific by ID
 

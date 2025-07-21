@@ -240,7 +240,7 @@ model TimeSlot {
 // Seat Management
 model Seat {
   id         String     @id @default(uuid())
-  seatNumber String
+  seatNumber Int
   status     SeatStatus @default(AVAILABLE)
   isActive   Boolean    @default(true)
 

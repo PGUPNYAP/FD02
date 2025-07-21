@@ -322,31 +322,32 @@ console.log("✅ Seeded 5 libraries in Delhi (Mandawali & Laxmi Nagar)");
   await prisma.seat.createMany({
   data: [
     // Seats for library-1
-    { id: 'seat-1', seatNumber: 'A1', status: 'AVAILABLE', isActive: true, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-2', seatNumber: 'A2', status: 'OCCUPIED', isActive: true, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-3', seatNumber: 'A3', status: 'MAINTENANCE', isActive: false, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-1', seatNumber: 1, status: 'AVAILABLE', isActive: true, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-2', seatNumber: 2, status: 'OCCUPIED', isActive: true, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-3', seatNumber: 3, status: 'MAINTENANCE', isActive: false, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
 
     // Seats for library-2
-    { id: 'seat-4', seatNumber: 'B1', status: 'AVAILABLE', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-5', seatNumber: 'B2', status: 'OCCUPIED', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-6', seatNumber: 'B3', status: 'AVAILABLE', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-4', seatNumber: 4, status: 'AVAILABLE', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-5', seatNumber: 5, status: 'OCCUPIED', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-6', seatNumber: 6, status: 'AVAILABLE', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
 
     // Seats for library-3
-    { id: 'seat-7', seatNumber: 'A1', status: 'MAINTENANCE', isActive: false, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-8', seatNumber: 'A2', status: 'AVAILABLE', isActive: true, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-9', seatNumber: 'A3', status: 'OCCUPIED', isActive: true, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-7', seatNumber: 1, status: 'MAINTENANCE', isActive: false, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-8', seatNumber: 2, status: 'AVAILABLE', isActive: true, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-9', seatNumber: 3, status: 'OCCUPIED', isActive: true, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
 
     // Seats for library-4
-    { id: 'seat-10', seatNumber: 'B1', status: 'AVAILABLE', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-11', seatNumber: 'D2', status: 'OCCUPIED', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-12', seatNumber: 'D3', status: 'AVAILABLE', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-10', seatNumber: 1, status: 'AVAILABLE', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-11', seatNumber: 2, status: 'OCCUPIED', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-12', seatNumber: 3, status: 'AVAILABLE', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
 
     // Seats for library-5
-    { id: 'seat-13', seatNumber: 'E1', status: 'AVAILABLE', isActive: true, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-14', seatNumber: 'E2', status: 'MAINTENANCE', isActive: false, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-15', seatNumber: 'E3', status: 'OCCUPIED', isActive: true, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() }
+    { id: 'seat-13', seatNumber: 1, status: 'AVAILABLE', isActive: true, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-14', seatNumber: 2, status: 'MAINTENANCE', isActive: false, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-15', seatNumber: 3, status: 'OCCUPIED', isActive: true, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() }
   ]
 });
+
 console.log("✅ Seeded 15 seats across 5 libraries");
 
 

@@ -6,58 +6,22 @@ const prisma = new PrismaClient();
 // POST /reviews
 export const createReview = async (req: Request, res: Response) => {
   try {
-    console.log('📝 Creating review - Request body:', req.body);
-    console.log('📝 Request headers:', req.headers);
-    
     const { studentId, libraryId, stars, comment } = req.body;
-    
     if (!studentId || !libraryId || !stars) {
-      console.log('❌ Missing required fields:', { studentId, libraryId, stars });
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
-    
     if (stars < 1 || stars > 5) {
-      console.log('❌ Invalid stars value:', stars);
       return res.status(400).json({ success: false, message: 'Stars must be between 1 and 5' });
-    }
-
-    // Check if student and library exist
-    const student = await prisma.student.findUnique({ where: { id: studentId } });
-    if (!student) {
-      console.log('❌ Student not found:', studentId);
-      return res.status(404).json({ success: false, message: 'Student not found' });
-    }
-
-    const library = await prisma.library.findUnique({ where: { id: libraryId } });
-    if (!library) {
-      console.log('❌ Library not found:', libraryId);
-      return res.status(404).json({ success: false, message: 'Library not found' });
-    }
-
-    // Check if review already exists
-    const existingReview = await prisma.review.findUnique({
-      where: {
-        studentId_libraryId: {
-          studentId,
-          libraryId
-        }
-      }
-    });
-
-    if (existingReview) {
-      console.log('❌ Review already exists for student-library pair');
-      return res.status(409).json({ success: false, message: 'You have already reviewed this library' });
     }
 
     const review = await prisma.review.create({
       data: { studentId, libraryId, stars, comment, status: ReviewStatus.PENDING }
     });
 
-    console.log('✅ Review created successfully:', review);
     return res.status(201).json({ success: true, data: review, message: 'Review submitted' });
   } catch (error: any) {
-    console.error('🔥 createReview error:', error);
-    return res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    console.error('createReview error:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 

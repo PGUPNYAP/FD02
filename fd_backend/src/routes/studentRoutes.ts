@@ -1,10 +1,8 @@
-// import express from 'express';
-// // import { requireAuth } from '../middlewares/auth.middleware';
-// // import { createStudent, getStudents } from '../controllers/studentcontroller';
+import express from "express";
+import { createStudent } from '../controllers/studentControllers';
 
-// const router = express.Router();
+const router = express.Router();
 
-// // router.post('/', createStudent);
-// // router.get('/', getStudents);
+router.post('/', createStudent);
 
-// export default router;
+export default router;
