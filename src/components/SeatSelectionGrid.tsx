@@ -10,6 +10,7 @@ import {
 import { CheckIcon } from 'react-native-heroicons/solid';
 import { useQuery } from '@tanstack/react-query';
 import { seatApi } from '../services/api';
+import { TimeSlot } from '../types/api';
 
 const { width } = Dimensions.get('window');
 const SEATS_PER_ROW = 5;
@@ -23,26 +24,42 @@ interface Seat {
 
 interface SeatSelectionGridProps {
   libraryId: string;
+  selectedTimeSlot?: TimeSlot | null;
   onSeatSelect: (seatId: string, seatNumber: number) => void;
   selectedSeatId?: string;
 }
 
 export default function SeatSelectionGrid({ 
   libraryId, 
+  selectedTimeSlot,
   onSeatSelect, 
   selectedSeatId 
 }: SeatSelectionGridProps) {
   const [selectedSeat, setSelectedSeat] = useState<string | null>(selectedSeatId || null);
 
+  // Prepare query parameters for seat availability
+  const queryParams = {
+    libraryId,
+    ...(selectedTimeSlot && {
+      date: selectedTimeSlot.date,
+      startTime: selectedTimeSlot.startTime,
+      endTime: selectedTimeSlot.endTime,
+    }),
+  };
   const { 
     data: seats, 
     isLoading, 
     error, 
     refetch 
   } = useQuery({
-    queryKey: ['seats', libraryId],
-    queryFn: () => seatApi.getAvailableSeats(libraryId),
-    enabled: !!libraryId,
+    queryKey: ['seats', libraryId, selectedTimeSlot?.id],
+    queryFn: () => seatApi.getAvailableSeats(
+      queryParams.libraryId,
+      queryParams.date,
+      queryParams.startTime,
+      queryParams.endTime
+    ),
+    enabled: !!libraryId && !!selectedTimeSlot,
     staleTime: 30000, // 30 seconds
     refetchInterval: 60000, // Refetch every minute to get updated seat status
   });
@@ -161,6 +178,14 @@ export default function SeatSelectionGrid({
         Select Your Seat
       </Text>
       
+      {!selectedTimeSlot && (
+        <View className="bg-yellow-50 p-3 rounded-lg mb-4">
+          <Text className="text-yellow-800 text-center text-sm">
+            Please select a time slot first to view available seats
+          </Text>
+        </View>
+      )}
+      
       {/* Legend */}
       <View className="flex-row justify-center mb-4 space-x-4">
         <View className="flex-row items-center">
@@ -178,7 +203,11 @@ export default function SeatSelectionGrid({
       </View>
 
       {/* Seat Grid */}
-      {renderSeatGrid()}
+      {selectedTimeSlot ? renderSeatGrid() : (
+        <View className="items-center py-8">
+          <Text className="text-gray-500">Select a time slot to view seats</Text>
+        </View>
+      )}
 
       {/* Selected Seat Info */}
       {selectedSeat && (

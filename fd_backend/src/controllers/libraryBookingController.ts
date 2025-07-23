@@ -8,22 +8,93 @@ export const createSeatBooking = async (req: Request, res: Response) => {
   try {
     const { studentId, libraryId, planId, timeSlotId, seatId, totalAmount } = req.body;
 
+    console.log('📝 Received booking request:', {
+      studentId,
+      libraryId,
+      planId,
+      timeSlotId,
+      seatId,
+      totalAmount,
+      bodyType: typeof req.body,
+      studentIdType: typeof studentId
+    });
+
     // Basic validation
     if (!studentId || !libraryId || !planId || !timeSlotId || !seatId || !totalAmount) {
+      console.error('❌ Missing required fields:', { studentId, libraryId, planId, timeSlotId, seatId, totalAmount });
       return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    // Verify student exists
+    const student = await prisma.student.findUnique({ where: { id: studentId } });
+    if (!student) {
+      console.error('❌ Student not found:', studentId);
+      return res.status(404).json({ 
+        success: false, 
+        message: `Student with ID ${studentId} not found. Please login again.` 
+      });
+    }
+    console.log('✅ Student verified:', student.username);
+
+    // Verify library exists
+    const library = await prisma.library.findUnique({ where: { id: libraryId } });
+    if (!library) {
+      console.error('❌ Library not found:', libraryId);
+      return res.status(404).json({ success: false, message: 'Library not found' });
+    }
+
+    // Verify plan exists and belongs to library
+    const plan = await prisma.libraryPlan.findFirst({ 
+      where: { id: planId, libraryId: libraryId } 
+    });
+    if (!plan) {
+      console.error('❌ Plan not found or does not belong to library:', { planId, libraryId });
+      return res.status(404).json({ success: false, message: 'Plan not found for this library' });
     }
 
     // Check time slot capacity
     const slot = await prisma.timeSlot.findUnique({ where: { id: timeSlotId } });
     if (!slot || slot.status !== TimeSlotStatus.AVAILABLE || slot.bookedCount >= slot.capacity) {
+      console.error('❌ Time slot not available:', { 
+        slotExists: !!slot, 
+        status: slot?.status, 
+        bookedCount: slot?.bookedCount, 
+        capacity: slot?.capacity 
+      });
       return res.status(409).json({ success: false, message: 'Time slot not available' });
     }
 
     // Check seat availability
     const seat = await prisma.seat.findUnique({ where: { id: seatId } });
     if (!seat || seat.status !== SeatStatus.AVAILABLE) {
+      console.error('❌ Seat not available:', { 
+        seatExists: !!seat, 
+        status: seat?.status,
+        seatNumber: seat?.seatNumber 
+      });
       return res.status(409).json({ success: false, message: 'Seat not available' });
     }
+
+    // Check if seat is already booked for this time slot
+    const existingBooking = await prisma.booking.findFirst({
+      where: {
+        seatId: seatId,
+        timeSlotId: timeSlotId,
+        status: {
+          in: [BookingStatus.ACTIVE, BookingStatus.COMPLETED]
+        }
+      }
+    });
+
+    if (existingBooking) {
+      console.error('❌ Seat already booked for this time slot:', { seatId, timeSlotId });
+      return res.status(409).json({ 
+        success: false, 
+        message: 'This seat is already booked for the selected time slot' 
+      });
+    }
+
+    console.log('✅ All validations passed, creating booking...');
 
     // Transactional booking
     const booking = await prisma.$transaction(async tx => {
@@ -37,7 +108,7 @@ export const createSeatBooking = async (req: Request, res: Response) => {
           seatId,
           validFrom: slot.date,
           validTo: slot.date,          // adjust if plan spans multiple days
-          totalAmount,
+          totalAmount: Number(totalAmount),
           status: BookingStatus.ACTIVE
         },
         include: {
@@ -67,9 +138,30 @@ export const createSeatBooking = async (req: Request, res: Response) => {
       return newBooking;
     });
 
+    console.log('✅ Booking created successfully:', booking.id);
     return res.status(201).json({ success: true, data: booking, message: 'Seat booked successfully' });
   } catch (error: any) {
     console.error('createSeatBooking error:', error);
+    
+    // Handle Prisma specific errors
+    if (error.code === 'P2003') {
+      console.error('❌ Foreign key constraint violation:', error.meta);
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid reference data. Please check your student ID and try again.',
+        error: 'Foreign key constraint violation'
+      });
+    }
+    
+    if (error.code === 'P2002') {
+      console.error('❌ Unique constraint violation:', error.meta);
+      return res.status(409).json({ 
+        success: false, 
+        message: 'This booking already exists or conflicts with existing data.',
+        error: 'Unique constraint violation'
+      });
+    }
+    
     return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };

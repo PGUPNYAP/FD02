@@ -135,6 +135,18 @@ export interface StudentCreateRequest {
   lastName?: string;
 }
 
+export interface StudentResponse {
+  id: string;
+  cognitoId: string;
+  username: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
 export interface Booking {
   id: string;
   status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED';

@@ -11,7 +11,7 @@ import {
 import { ArrowLeftIcon, CheckIcon } from 'react-native-heroicons/outline';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Library, LibraryPlan, TimeSlot } from '../types/api';
-import { bookingApi } from '../services/api';
+import { bookingApi, studentApi } from '../services/api';
 import { useStorage, STORAGE_KEYS } from '../hooks/useStorage';
 import { BookingScreenProps } from '../types/navigation';
 import SeatSelectionGrid from '../components/SeatSelectionGrid';
@@ -88,6 +88,23 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
     },
   });
 
+  // Mutation to verify student exists before booking
+  const verifyStudentMutation = useMutation({
+    mutationFn: studentApi.getStudentByCognitoId,
+    onSuccess: (studentData) => {
+      console.log('✅ Student verified:', studentData);
+      // Proceed with booking using the verified student ID
+      proceedWithBooking(studentData.id);
+    },
+    onError: (error: any) => {
+      console.error('❌ Student verification failed:', error);
+      Alert.alert(
+        'Authentication Error',
+        'Please login again to continue booking.',
+        [{ text: 'Login', onPress: () => navigation.navigate('Login') }]
+      );
+    },
+  });
   const handleSeatSelect = (seatId: string, seatNumber: number) => {
     setSelectedSeatId(seatId);
     setSelectedSeatNumber(seatNumber);
@@ -110,26 +127,39 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
       return;
     }
 
-    handleBookingSubmit();
+    // First verify the student exists in the backend
+    console.log('🔍 Verifying student before booking...');
+    verifyStudentMutation.mutate(currentUser.cognitoId);
   };
 
-  const handleBookingSubmit = async () => {
-    if (!selectedPlan || !selectedTimeSlot || !selectedSeatId || !currentUser) return;
+  const proceedWithBooking = (verifiedStudentId: string) => {
+    if (!selectedPlan || !selectedTimeSlot || !selectedSeatId) return;
     
     try {
+      // Ensure all IDs are strings and match backend expectations
       const bookingData = {
-        studentId: currentUser.cognitoId, // Use the cognitoId as studentId
+        studentId: verifiedStudentId, // Use the verified backend student ID
         libraryId: library.id,
         planId: selectedPlan.id,
         timeSlotId: selectedTimeSlot.id,
         seatId: selectedSeatId,
-        totalAmount: parseFloat(selectedPlan.price.toString()),
+        totalAmount: Number(selectedPlan.price), // Ensure it's a number
       };
 
-      console.log('Submitting booking data:', bookingData);
+      console.log('📝 Submitting booking with verified data:', bookingData);
+      
+      // Validate all required fields are present
+      const requiredFields = ['studentId', 'libraryId', 'planId', 'timeSlotId', 'seatId', 'totalAmount'];
+      const missingFields = requiredFields.filter(field => !bookingData[field as keyof typeof bookingData]);
+      
+      if (missingFields.length > 0) {
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+      }
+      
       bookingMutation.mutate(bookingData);
     } catch (error) {
       console.error('Booking submission error:', error);
+      Alert.alert('Booking Error', 'Failed to prepare booking data. Please try again.');
     }
   };
 
@@ -284,6 +314,7 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
         <View className="mb-6">
           <SeatSelectionGrid
             libraryId={library.id}
+            selectedTimeSlot={selectedTimeSlot}
             onSeatSelect={handleSeatSelect}
             selectedSeatId={selectedSeatId}
           />
@@ -296,15 +327,15 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
       <View className="p-4 border-t border-gray-200">
         <Pressable
           onPress={handleBookNowPress}
-          disabled={!selectedPlan || !selectedTimeSlot || !selectedSeatId || bookingMutation.isPending}
+          disabled={!selectedPlan || !selectedTimeSlot || !selectedSeatId || bookingMutation.isPending || verifyStudentMutation.isPending}
           className={`py-4 rounded-lg ${
-            selectedPlan && selectedTimeSlot && selectedSeatId && !bookingMutation.isPending
+            selectedPlan && selectedTimeSlot && selectedSeatId && !bookingMutation.isPending && !verifyStudentMutation.isPending
               ? 'bg-blue-600'
               : 'bg-gray-300'
           }`}
           android_ripple={{ color: '#2563eb' }}
         >
-          {bookingMutation.isPending ? (
+          {(bookingMutation.isPending || verifyStudentMutation.isPending) ? (
             <ActivityIndicator color="white" />
           ) : (
             <Text className="text-white text-center font-semibold text-lg">

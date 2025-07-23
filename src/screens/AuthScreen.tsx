@@ -75,16 +75,14 @@ export default function AuthScreen({ navigation }: RootStackScreenProps<'Login'>
 
     setIsLoading(true);
     try {
-      const { studentId, cognitoId } = generateStudentIds(formData.username);
+      const cognitoId = `cognito-${formData.username}-${Math.floor(Math.random() * 10000)}`;
       
       const studentData = {
         cognitoId,
         username: formData.username,
         email: formData.email,
-        password: formData.password,
-        phoneNumber: formData.phoneNumber,
-        firstName: '', // Optional field
-        lastName: '', // Optional field
+        ...(formData.password && { password: formData.password }),
+        ...(formData.phoneNumber && { phoneNumber: formData.phoneNumber }),
       };
 
       console.log('Creating student with data:', studentData);
@@ -93,16 +91,21 @@ export default function AuthScreen({ navigation }: RootStackScreenProps<'Login'>
       const response = await studentApi.createStudent(studentData);
       
       if (response.success || response.message === 'Student created successfully') {
-        // Store in MMKV
+        // Get the actual student data from backend response
+        const backendStudent = response.data?.student || response.data;
+        
+        // Store in MMKV with backend student ID
         const userDataForStorage = {
-          id: studentId,
-          cognitoId,
+          id: backendStudent?.id || `stu-${formData.username.substring(0, 3)}-${Date.now()}`,
+          cognitoId: backendStudent?.cognitoId || cognitoId,
           username: formData.username,
           email: formData.email,
           phoneNumber: formData.phoneNumber,
+          backendStudentId: backendStudent?.id, // Store the actual backend student ID
           createdAt: new Date().toISOString(),
         };
 
+        console.log('💾 Storing user data in MMKV:', userDataForStorage);
         setItem(STORAGE_KEYS.CURRENT_USER, userDataForStorage);
 
         Alert.alert(
@@ -116,7 +119,29 @@ export default function AuthScreen({ navigation }: RootStackScreenProps<'Login'>
       
       // Handle specific error cases
       if (error.response?.status === 409) {
-        Alert.alert('User Exists', 'This user already exists. Try logging in instead.');
+        // User exists, try to get existing user data
+        try {
+          const existingStudent = await studentApi.getStudentByCognitoId(
+            `cognito-${formData.username}-${Math.floor(Math.random() * 10000)}`
+          );
+          
+          const userDataForStorage = {
+            id: existingStudent.id,
+            cognitoId: existingStudent.cognitoId,
+            username: existingStudent.username,
+            email: existingStudent.email,
+            phoneNumber: formData.phoneNumber,
+            backendStudentId: existingStudent.id,
+            createdAt: new Date().toISOString(),
+          };
+          
+          setItem(STORAGE_KEYS.CURRENT_USER, userDataForStorage);
+          Alert.alert('Welcome Back!', `Hello ${existingStudent.username}`, [
+            { text: 'OK', onPress: () => navigation.replace('Home') }
+          ]);
+        } catch (loginError) {
+          Alert.alert('User Exists', 'This user already exists. Please try with different credentials.');
+        }
       } else if (error.response?.data?.message) {
         Alert.alert('Error', error.response.data.message);
       } else {

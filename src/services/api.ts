@@ -202,39 +202,75 @@ export const studentApi = {
       throw new Error('Network error - please check your connection');
     }
   },
+
+  // Get student by cognitoId to verify existence
+  getStudentByCognitoId: async (cognitoId: string): Promise<{ id: string; cognitoId: string; username: string; email: string }> => {
+    try {
+      console.log('🔍 Fetching student by cognitoId:', cognitoId);
+      const response = await api.get(`/students/${cognitoId}`);
+      console.log('✅ Student found:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Student not found:', error);
+      if (error.response?.status === 404) {
+        throw new Error('Student not found. Please login again.');
+      }
+      throw new Error('Failed to verify student');
+    }
+  },
 };
 
 // Seat API
 export const seatApi = {
-  getAvailableSeats: async (libraryId: string): Promise<Array<{
+  getAvailableSeats: async (
+    libraryId: string, 
+    date?: string, 
+    startTime?: string, 
+    endTime?: string
+  ): Promise<Array<{
     id: string;
     seatNumber: number;
     status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED';
   }>> => {
     try {
-      console.log('🪑 Fetching seats for library:', libraryId);
+      console.log('🪑 Fetching available seats for library:', libraryId, { date, startTime, endTime });
       
-      // For now, we'll generate mock data based on the library's totalSeats
-      // You can replace this with actual API call when backend endpoint is ready
-      const library = await libraryApi.getLibraryById(libraryId);
-      const totalSeats = library.totalSeats || 30;
+      // Build query parameters for seat availability check
+      const params = new URLSearchParams();
+      params.append('libraryId', libraryId);
+      if (date) params.append('date', date);
+      if (startTime) params.append('startTime', startTime);
+      if (endTime) params.append('endTime', endTime);
       
-      const seats = [];
-      for (let i = 1; i <= totalSeats; i++) {
-        // Randomly assign some seats as occupied for demo
-        const isOccupied = Math.random() < 0.3; // 30% chance of being occupied
-        seats.push({
-          id: `seat-${i}`,
-          seatNumber: i,
-          status: isOccupied ? 'OCCUPIED' : 'AVAILABLE' as const,
-        });
-      }
+      const response = await api.get(`/bookings/available?${params.toString()}`);
+      console.log('✅ Available seats fetched:', response.data);
       
-      console.log('✅ Generated seats:', seats.length);
-      return seats;
+      // Transform backend response to match frontend expectations
+      return response.data.data || [];
     } catch (error: any) {
       console.error('❌ Failed to fetch seats:', error);
-      throw new Error('Failed to load seats');
+      
+      // Fallback to mock data if backend endpoint doesn't exist yet
+      console.log('⚠️ Using fallback mock data for seats');
+      try {
+        const library = await libraryApi.getLibraryById(libraryId);
+        const totalSeats = library.totalSeats || 30;
+        
+        const seats = [];
+        for (let i = 1; i <= totalSeats; i++) {
+          // Randomly assign some seats as occupied for demo
+          const isOccupied = Math.random() < 0.3; // 30% chance of being occupied
+          seats.push({
+            id: `seat-${i}`,
+            seatNumber: i,
+            status: isOccupied ? 'OCCUPIED' : 'AVAILABLE' as const,
+          });
+        }
+        
+        return seats;
+      } catch (fallbackError) {
+        throw new Error('Failed to load seats');
+      }
     }
   },
 };
