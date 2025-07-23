@@ -5,9 +5,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SplashScreen from '../screens/SplashScreen';
 import TabNavigator from './TabNavigator';
 import LibraryDetailsScreen from '../screens/LibraryDetailsScreen';
-import BookingScreen from '../screens/BookingScreen';
+import EnhancedBookingScreen from '../screens/EnhancedBookingScreen';
 
-import LoginScreen from '../screens/LoginScreen';
+import AuthScreen from '../screens/AuthScreen';
 import SignupScreen from '../screens/SignupScreen';
 import { navigationRef } from '../utils/NavigationUtil';
 import { RootStackParamList } from '../types/navigation';
@@ -24,12 +24,12 @@ export default function Navigation({ initialRoute }: NavigationProps) {
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator initialRouteName={initialRoute === 'Login' ? 'Login' : 'Splash'} screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Login" component={AuthScreen} />
         <Stack.Screen name="Signup" component={SignupScreen} />
         <Stack.Screen name="Home" component={TabNavigator} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="LibraryDetails" component={LibraryDetailsScreen} />
-        <Stack.Screen name="Booking" component={BookingScreen} />
+        <Stack.Screen name="Booking" component={EnhancedBookingScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

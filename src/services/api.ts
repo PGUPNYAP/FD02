@@ -177,3 +177,64 @@ export const reviewApi = {
 };
 
 export default api;
+
+// Student API
+export const studentApi = {
+  createStudent: async (studentData: {
+    cognitoId: string;
+    username: string;
+    email: string;
+    password?: string;
+    phoneNumber?: string;
+    firstName?: string;
+    lastName?: string;
+  }): Promise<{ success: boolean; data?: any; message: string }> => {
+    try {
+      console.log('📝 Creating student with data:', studentData);
+      const response = await api.post('/students', studentData);
+      console.log('✅ Student created successfully:', response.data);
+      return { success: true, data: response.data, message: response.data.message || 'Student created successfully' };
+    } catch (error: any) {
+      console.error('❌ Student creation failed:', error);
+      if (error.response?.data) {
+        throw new Error(error.response.data.message || 'Student creation failed');
+      }
+      throw new Error('Network error - please check your connection');
+    }
+  },
+};
+
+// Seat API
+export const seatApi = {
+  getAvailableSeats: async (libraryId: string): Promise<Array<{
+    id: string;
+    seatNumber: number;
+    status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED';
+  }>> => {
+    try {
+      console.log('🪑 Fetching seats for library:', libraryId);
+      
+      // For now, we'll generate mock data based on the library's totalSeats
+      // You can replace this with actual API call when backend endpoint is ready
+      const library = await libraryApi.getLibraryById(libraryId);
+      const totalSeats = library.totalSeats || 30;
+      
+      const seats = [];
+      for (let i = 1; i <= totalSeats; i++) {
+        // Randomly assign some seats as occupied for demo
+        const isOccupied = Math.random() < 0.3; // 30% chance of being occupied
+        seats.push({
+          id: `seat-${i}`,
+          seatNumber: i,
+          status: isOccupied ? 'OCCUPIED' : 'AVAILABLE' as const,
+        });
+      }
+      
+      console.log('✅ Generated seats:', seats.length);
+      return seats;
+    } catch (error: any) {
+      console.error('❌ Failed to fetch seats:', error);
+      throw new Error('Failed to load seats');
+    }
+  },
+};

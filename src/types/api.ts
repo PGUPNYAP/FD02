@@ -125,6 +125,16 @@ export interface ReviewRequest {
   comment?: string;
 }
 
+export interface StudentCreateRequest {
+  cognitoId: string;
+  username: string;
+  email: string;
+  password?: string;
+  phoneNumber?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
 export interface Booking {
   id: string;
   status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED';
