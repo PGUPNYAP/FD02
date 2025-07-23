@@ -1,0 +1,20 @@
+[33m262de28[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Dummy Login System with MMKV Storage
+[33m27e4840[m AWS Cognito Authentication Integration
+[33meab7d92[m added studend route and seeded data
+[33md791751[m Fix Frontend API Issues Only
+[33m5b5f568[m Fix Network Error and API Configuration
+[33m116ec7d[m Fix Review and Booking API Issues
+[33mab5f31a[m Fix Booking and Review with Simple Login System
+[33m5671f66[m Enhance React Native App with Booking and Review Features
+[33m2fe1c45[m fixed backend err
+[33m12f9d3e[m fixed backend
+[33m775cc69[m Updated LocationPicker.tsx
+[33mc5d3003[m Fix TypeScript Errors and Improve Location Picker Animation
+[33m67e819c[m Fix ExpandableText, Remove Profile Tab, and Improve Action Buttons
+[33m15d170c[m Updated LibraryDetailsScreen.tsx
+[33m207dc90[m HomeScreen and LibraryCard UI Improvements
+[33ma939917[m removed firebase
+[33m1f5966e[m Fix TypeScript Navigation Prop Errors
+[33m2ca7197[m React Native Library Management System
+[33m14ffbb5[m Deleted google-services.json
+[33m72fecbc[m first commit

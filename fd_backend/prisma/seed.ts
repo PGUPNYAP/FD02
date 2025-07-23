@@ -210,7 +210,12 @@ async function main() {
       pincode: '110092',
       country: 'India',
       googleMapLink: 'https://maps.app.goo.gl/sdVCavP6NCrr28rKA',
-      photos: [],
+      photos: [
+  "https://i.postimg.cc/fLbSyYJV/Whats-App-Image-2025-07-17-at-2-24-08-PM.jpg",
+  "https://i.postimg.cc/ZqtGxh3m/Whats-App-Image-2025-07-17-at-2-25-04-PM.jpg",
+  "https://i.postimg.cc/fLbSyYJV/Whats-App-Image-2025-07-17-at-2-24-08-PM.jpg",
+  "https://i.postimg.cc/ZqtGxh3m/Whats-App-Image-2025-07-17-at-2-25-04-PM.jpg"
+],
       totalSeats: 30,
       openingTime: '06:00',
       closingTime: '23:00',
@@ -233,7 +238,8 @@ async function main() {
       pincode: '110092',
       country: 'India',
       googleMapLink: 'https://maps.google.com/readers-arena',
-      photos: [],
+      photos: ["https://i.postimg.cc/ZqtGxh3m/Whats-App-Image-2025-07-17-at-2-25-04-PM.jpg",
+               "https://i.postimg.cc/fLbSyYJV/Whats-App-Image-2025-07-17-at-2-24-08-PM.jpg",],
       totalSeats: 20,
       openingTime: '6:00',
       closingTime: '22:00',
@@ -319,36 +325,52 @@ async function main() {
 console.log("✅ Seeded 5 libraries in Delhi (Mandawali & Laxmi Nagar)");
 
   // Seats
-  await prisma.seat.createMany({
+ await prisma.seat.createMany({
   data: [
-    // Seats for library-1
+    // Library 1
     { id: 'seat-1', seatNumber: 1, status: 'AVAILABLE', isActive: true, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
     { id: 'seat-2', seatNumber: 2, status: 'OCCUPIED', isActive: true, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
     { id: 'seat-3', seatNumber: 3, status: 'MAINTENANCE', isActive: false, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-16', seatNumber: 4, status: 'AVAILABLE', isActive: true, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-17', seatNumber: 5, status: 'AVAILABLE', isActive: true, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-18', seatNumber: 6, status: 'AVAILABLE', isActive: true, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
 
-    // Seats for library-2
-    { id: 'seat-4', seatNumber: 4, status: 'AVAILABLE', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-5', seatNumber: 5, status: 'OCCUPIED', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-6', seatNumber: 6, status: 'AVAILABLE', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
+    // Library 2
+    { id: 'seat-4', seatNumber: 1, status: 'AVAILABLE', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-5', seatNumber: 2, status: 'OCCUPIED', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-6', seatNumber: 3, status: 'AVAILABLE', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-19', seatNumber: 4, status: 'AVAILABLE', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-20', seatNumber: 5, status: 'AVAILABLE', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-21', seatNumber: 6, status: 'AVAILABLE', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
 
-    // Seats for library-3
+    // Library 3
     { id: 'seat-7', seatNumber: 1, status: 'MAINTENANCE', isActive: false, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
     { id: 'seat-8', seatNumber: 2, status: 'AVAILABLE', isActive: true, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
     { id: 'seat-9', seatNumber: 3, status: 'OCCUPIED', isActive: true, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-22', seatNumber: 4, status: 'AVAILABLE', isActive: true, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-23', seatNumber: 5, status: 'AVAILABLE', isActive: true, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-24', seatNumber: 6, status: 'AVAILABLE', isActive: true, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
 
-    // Seats for library-4
+    // Library 4
     { id: 'seat-10', seatNumber: 1, status: 'AVAILABLE', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
     { id: 'seat-11', seatNumber: 2, status: 'OCCUPIED', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
     { id: 'seat-12', seatNumber: 3, status: 'AVAILABLE', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-25', seatNumber: 4, status: 'AVAILABLE', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-26', seatNumber: 5, status: 'AVAILABLE', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-27', seatNumber: 6, status: 'AVAILABLE', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
 
-    // Seats for library-5
+    // Library 5
     { id: 'seat-13', seatNumber: 1, status: 'AVAILABLE', isActive: true, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() },
     { id: 'seat-14', seatNumber: 2, status: 'MAINTENANCE', isActive: false, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-15', seatNumber: 3, status: 'OCCUPIED', isActive: true, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() }
+    { id: 'seat-15', seatNumber: 3, status: 'OCCUPIED', isActive: true, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-28', seatNumber: 4, status: 'AVAILABLE', isActive: true, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-29', seatNumber: 5, status: 'AVAILABLE', isActive: true, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() },
+    { id: 'seat-30', seatNumber: 6, status: 'AVAILABLE', isActive: true, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() }
   ]
 });
 
-console.log("✅ Seeded 15 seats across 5 libraries");
+console.log("✅ Seeded 30 seats across 5 libraries");
+
 
 
   // Social Links
@@ -360,7 +382,8 @@ console.log("✅ Seeded 15 seats across 5 libraries");
   console.log("✅ Seeded social links");
 
   // Library Plans
-  await prisma.libraryPlan.createMany({ data: [
+await prisma.libraryPlan.createMany({
+  data: [
     {
       id: 'plan-1',
       planName: 'Monthly',
@@ -388,12 +411,99 @@ console.log("✅ Seeded 15 seats across 5 libraries");
       libraryId: 'library-2',
       createdAt: new Date(),
       updatedAt: new Date()
+    },
+    {
+      id: 'plan-3',
+      planName: 'Daily Pass',
+      hours: 8,
+      days: 1,
+      months: 0,
+      price: 120.0,
+      planType: 'daily',
+      description: 'One-day access with 8 hours of usage',
+      isActive: true,
+      libraryId: 'library-3',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'plan-4',
+      planName: 'Weekend Pass',
+      hours: 16,
+      days: 2,
+      months: 0,
+      price: 250.0,
+      planType: 'weekend',
+      description: 'Access for Saturday and Sunday',
+      isActive: true,
+      libraryId: 'library-4',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'plan-5',
+      planName: 'Quarterly Plan',
+      hours: 600,
+      days: 90,
+      months: 3,
+      price: 6000.0,
+      planType: 'quarterly',
+      description: 'Best for long-term users – 3-month access',
+      isActive: true,
+      libraryId: 'library-5',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'plan-6',
+      planName: 'Student Special',
+      hours: 100,
+      days: 30,
+      months: 1,
+      price: 1200.0,
+      planType: 'monthly',
+      description: 'Discounted plan for students with ID',
+      isActive: true,
+      libraryId: 'library-2',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'plan-7',
+      planName: 'Evening Pass',
+      hours: 60,
+      days: 30,
+      months: 1,
+      price: 800.0,
+      planType: 'evening',
+      description: 'Evening access only (5PM to 10PM)',
+      isActive: true,
+      libraryId: 'library-1',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'plan-8',
+      planName: 'Flexi Plan',
+      hours: 150,
+      days: 45,
+      months: 1,
+      price: 1800.0,
+      planType: 'flexi',
+      description: 'Flexible hour usage within 45 days',
+      isActive: true,
+      libraryId: 'library-5',
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
-  ]});
-  console.log("✅ Seeded library plans");
+  ]
+});
+console.log("✅ Seeded all library plans");
+
 
   // TimeSlots
-  await prisma.timeSlot.createMany({ data: [
+ await prisma.timeSlot.createMany({
+  data: [
     {
       id: 'ts-1',
       startTime: '10:00',
@@ -412,7 +522,7 @@ console.log("✅ Seeded 15 seats across 5 libraries");
       endTime: '14:00',
       date: new Date(),
       capacity: 8,
-      bookedCount: 1,
+      bookedCount: 8,
       status: 'BOOKED',
       libraryId: 'library-1',
       createdAt: new Date(),
@@ -429,9 +539,95 @@ console.log("✅ Seeded 15 seats across 5 libraries");
       libraryId: 'library-2',
       createdAt: new Date(),
       updatedAt: new Date()
+    },
+    {
+      id: 'ts-4',
+      startTime: '09:00',
+      endTime: '11:00',
+      date: new Date(),
+      capacity: 12,
+      bookedCount: 4,
+      status: 'AVAILABLE',
+      libraryId: 'library-3',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'ts-5',
+      startTime: '11:00',
+      endTime: '13:00',
+      date: new Date(),
+      capacity: 10,
+      bookedCount: 10,
+      status: 'BOOKED',
+      libraryId: 'library-3',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'ts-6',
+      startTime: '13:00',
+      endTime: '15:00',
+      date: new Date(),
+      capacity: 8,
+      bookedCount: 5,
+      status: 'AVAILABLE',
+      libraryId: 'library-4',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'ts-7',
+      startTime: '15:00',
+      endTime: '17:00',
+      date: new Date(),
+      capacity: 6,
+      bookedCount: 6,
+      status: 'BOOKED',
+      libraryId: 'library-4',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'ts-8',
+      startTime: '17:00',
+      endTime: '19:00',
+      date: new Date(),
+      capacity: 5,
+      bookedCount: 1,
+      status: 'AVAILABLE',
+      libraryId: 'library-5',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'ts-9',
+      startTime: '08:00',
+      endTime: '10:00',
+      date: new Date(),
+      capacity: 7,
+      bookedCount: 7,
+      status: 'BOOKED',
+      libraryId: 'library-5',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'ts-10',
+      startTime: '18:00',
+      endTime: '20:00',
+      date: new Date(),
+      capacity: 10,
+      bookedCount: 3,
+      status: 'AVAILABLE',
+      libraryId: 'library-2',
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
-  ]});
-  console.log("✅ Seeded time slots");
+  ]
+});
+
+console.log("✅ Seeded time slots");
 
   // Bookings
   await prisma.booking.createMany({ data: [
