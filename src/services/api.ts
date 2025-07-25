@@ -119,6 +119,65 @@ export const libraryApi = {
   },
 };
 
+// Time Slot API
+export const timeSlotApi = {
+  getAvailableTimeSlots: async (libraryId: string, date: string): Promise<any[]> => {
+    try {
+      const response = await api.get(`/timeslots/available?libraryId=${libraryId}&date=${date}`);
+      return response.data.data?.timeSlots || [];
+    } catch (error) {
+      console.error('getAvailableTimeSlots error:', error);
+      // Return mock data if API fails
+      return [
+        {
+          id: 'ts-1',
+          startTime: '09:00',
+          endTime: '12:00',
+          date: date,
+          capacity: 10,
+          bookedCount: 3,
+          status: 'AVAILABLE',
+          availableSpots: 7,
+          isBookable: true,
+        },
+        {
+          id: 'ts-2',
+          startTime: '12:00',
+          endTime: '15:00',
+          date: date,
+          capacity: 10,
+          bookedCount: 7,
+          status: 'AVAILABLE',
+          availableSpots: 3,
+          isBookable: true,
+        },
+        {
+          id: 'ts-3',
+          startTime: '15:00',
+          endTime: '18:00',
+          date: date,
+          capacity: 10,
+          bookedCount: 2,
+          status: 'AVAILABLE',
+          availableSpots: 8,
+          isBookable: true,
+        },
+        {
+          id: 'ts-4',
+          startTime: '18:00',
+          endTime: '21:00',
+          date: date,
+          capacity: 10,
+          bookedCount: 10,
+          status: 'BOOKED',
+          availableSpots: 0,
+          isBookable: false,
+        },
+      ];
+    }
+  },
+};
+
 // Booking API
 export const bookingApi = {
   createBooking: async (booking: BookingRequest): Promise<{ success: boolean; data: any; message: string }> => {
@@ -138,12 +197,12 @@ export const bookingApi = {
 
   getUserBookings: async (userId: string): Promise<any[]> => {
     try {
-      // Mock data for now since endpoint doesn't exist
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return [];
+      const response = await api.get(`/bookings/user/${userId}`);
+      return response.data.data || [];
     } catch (error) {
       console.error('getUserBookings error:', error);
-      throw error;
+      // Return empty array if endpoint doesn't exist yet
+      return [];
     }
   },
 };
@@ -176,14 +235,13 @@ export const reviewApi = {
   },
 };
 
-export default api;
-
 // Student API
 export const studentApi = {
   createStudent: async (studentData: {
     cognitoId: string;
     username: string;
     email: string;
+    name?: string;
     password?: string;
     phoneNumber?: string;
     firstName?: string;
@@ -274,3 +332,5 @@ export const seatApi = {
     }
   },
 };
+
+export default api;

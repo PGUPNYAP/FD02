@@ -11,6 +11,24 @@ interface ProfileButtonProps {
 }
 
 export default function ProfileButton({ onPress, user }: ProfileButtonProps) {
+  const getDisplayName = () => {
+    if (!user?.name) return 'Profile';
+    
+    // Extract first name from full name
+    const firstName = user.name.split(' ')[0];
+    return firstName || 'Profile';
+  };
+
+  const getInitials = () => {
+    if (!user?.name) return 'P';
+    
+    const names = user.name.trim().split(' ');
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[1][0]}`.toUpperCase();
+    }
+    return names[0][0].toUpperCase();
+  };
+
   return (
     <Pressable
       onPress={onPress}
@@ -25,11 +43,13 @@ export default function ProfileButton({ onPress, user }: ProfileButtonProps) {
             resizeMode="cover"
           />
         ) : (
-          <UserIcon size={16} color="white" />
+          <Text className="text-white font-bold text-xs">
+            {getInitials()}
+          </Text>
         )}
       </View>
       <Text className="text-sm font-medium text-gray-800" numberOfLines={1}>
-        {user?.name || 'Profile'}
+        {getDisplayName()}
       </Text>
     </Pressable>
   );

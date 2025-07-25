@@ -9,11 +9,11 @@ import {
 } from 'react-native';
 import { CheckIcon } from 'react-native-heroicons/solid';
 import { useQuery } from '@tanstack/react-query';
-import { seatApi } from '../services/api';
+import { seatApi, timeSlotApi } from '../services/api';
 import { TimeSlot } from '../types/api';
 
 const { width } = Dimensions.get('window');
-const SEATS_PER_ROW = 5;
+const SEATS_PER_ROW = 6;
 const SEAT_SIZE = (width - 80) / SEATS_PER_ROW; // Account for padding and margins
 
 interface Seat {
@@ -46,6 +46,7 @@ export default function SeatSelectionGrid({
       endTime: selectedTimeSlot.endTime,
     }),
   };
+
   const { 
     data: seats, 
     isLoading, 
@@ -82,14 +83,18 @@ export default function SeatSelectionGrid({
   };
 
   const getSeatStyle = (seat: Seat) => {
-    const baseStyle = "items-center justify-center rounded-lg border-2 m-1";
+    const baseStyle = "items-center justify-center rounded-xl border-2 m-1 shadow-sm";
     
     if (seat.status === 'AVAILABLE') {
       return selectedSeat === seat.id 
-        ? `${baseStyle} bg-blue-600 border-blue-700`
-        : `${baseStyle} bg-green-100 border-green-300`;
+        ? `${baseStyle} bg-blue-600 border-blue-700 shadow-lg`
+        : `${baseStyle} bg-green-50 border-green-300`;
+    } else if (seat.status === 'OCCUPIED') {
+      return `${baseStyle} bg-red-100 border-red-300`;
+    } else if (seat.status === 'MAINTENANCE') {
+      return `${baseStyle} bg-yellow-100 border-yellow-300`;
     } else {
-      return `${baseStyle} bg-gray-200 border-gray-300`;
+      return `${baseStyle} bg-gray-100 border-gray-300`;
     }
   };
 
@@ -97,10 +102,27 @@ export default function SeatSelectionGrid({
     if (seat.status === 'AVAILABLE') {
       return selectedSeat === seat.id 
         ? "text-white font-bold"
-        : "text-green-800 font-semibold";
+        : "text-green-700 font-semibold";
+    } else if (seat.status === 'OCCUPIED') {
+      return "text-red-600 font-medium";
+    } else if (seat.status === 'MAINTENANCE') {
+      return "text-yellow-600 font-medium";
     } else {
-      return "text-gray-500";
+      return "text-gray-500 font-medium";
     }
+  };
+
+  const getSeatIcon = (seat: Seat) => {
+    if (selectedSeat === seat.id) {
+      return <CheckIcon size={12} color="white" style={{ position: 'absolute', top: 2, right: 2 }} />;
+    }
+    if (seat.status === 'OCCUPIED') {
+      return <Text style={{ fontSize: 8, color: '#dc2626' }}>●</Text>;
+    }
+    if (seat.status === 'MAINTENANCE') {
+      return <Text style={{ fontSize: 8, color: '#d97706' }}>⚠</Text>;
+    }
+    return null;
   };
 
   const renderSeat = (seat: Seat) => (
@@ -110,20 +132,19 @@ export default function SeatSelectionGrid({
       disabled={seat.status !== 'AVAILABLE'}
       className={getSeatStyle(seat)}
       style={{ 
-        width: SEAT_SIZE - 8, 
-        height: SEAT_SIZE - 8,
-        opacity: seat.status === 'AVAILABLE' ? 1 : 0.6 
+        width: SEAT_SIZE - 12, 
+        height: SEAT_SIZE - 12,
+        opacity: seat.status === 'AVAILABLE' ? 1 : 0.7,
+        elevation: selectedSeat === seat.id ? 4 : 1,
       }}
       android_ripple={{ 
         color: seat.status === 'AVAILABLE' ? '#3b82f6' : '#9ca3af' 
       }}
     >
-      <Text className={getSeatTextStyle(seat)} style={{ fontSize: 12 }}>
+      <Text className={getSeatTextStyle(seat)} style={{ fontSize: 11, fontWeight: '600' }}>
         {seat.seatNumber}
       </Text>
-      {selectedSeat === seat.id && (
-        <CheckIcon size={16} color="white" style={{ position: 'absolute', top: 2, right: 2 }} />
-      )}
+      {getSeatIcon(seat)}
     </Pressable>
   );
 
@@ -131,7 +152,7 @@ export default function SeatSelectionGrid({
     if (!seats || seats.length === 0) {
       return (
         <View className="items-center py-8">
-          <Text className="text-gray-600">No seats available</Text>
+          <Text className="text-gray-600 text-center">No seats available for this time slot</Text>
         </View>
       );
     }
@@ -140,7 +161,7 @@ export default function SeatSelectionGrid({
     for (let i = 0; i < seats.length; i += SEATS_PER_ROW) {
       const rowSeats = seats.slice(i, i + SEATS_PER_ROW);
       rows.push(
-        <View key={i} className="flex-row justify-center">
+        <View key={i} className="flex-row justify-center mb-2">
           {rowSeats.map(renderSeat)}
         </View>
       );
@@ -173,13 +194,13 @@ export default function SeatSelectionGrid({
   }
 
   return (
-    <View className="bg-white p-4 rounded-xl">
+    <View className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
       <Text className="text-lg font-semibold text-gray-800 mb-4 text-center">
         Select Your Seat
       </Text>
       
       {!selectedTimeSlot && (
-        <View className="bg-yellow-50 p-3 rounded-lg mb-4">
+        <View className="bg-yellow-50 p-4 rounded-xl mb-4 border border-yellow-200">
           <Text className="text-yellow-800 text-center text-sm">
             Please select a time slot first to view available seats
           </Text>
@@ -187,33 +208,37 @@ export default function SeatSelectionGrid({
       )}
       
       {/* Legend */}
-      <View className="flex-row justify-center mb-4 space-x-4">
-        <View className="flex-row items-center">
-          <View className="w-4 h-4 bg-green-100 border border-green-300 rounded mr-2" />
+      <View className="flex-row justify-center mb-6 flex-wrap">
+        <View className="flex-row items-center mx-2 mb-2">
+          <View className="w-4 h-4 bg-green-50 border border-green-300 rounded mr-2" />
           <Text className="text-xs text-gray-600">Available</Text>
         </View>
-        <View className="flex-row items-center">
+        <View className="flex-row items-center mx-2 mb-2">
           <View className="w-4 h-4 bg-blue-600 border border-blue-700 rounded mr-2" />
           <Text className="text-xs text-gray-600">Selected</Text>
         </View>
-        <View className="flex-row items-center">
-          <View className="w-4 h-4 bg-gray-200 border border-gray-300 rounded mr-2" />
+        <View className="flex-row items-center mx-2 mb-2">
+          <View className="w-4 h-4 bg-red-100 border border-red-300 rounded mr-2" />
           <Text className="text-xs text-gray-600">Occupied</Text>
+        </View>
+        <View className="flex-row items-center mx-2 mb-2">
+          <View className="w-4 h-4 bg-yellow-100 border border-yellow-300 rounded mr-2" />
+          <Text className="text-xs text-gray-600">Maintenance</Text>
         </View>
       </View>
 
       {/* Seat Grid */}
       {selectedTimeSlot ? renderSeatGrid() : (
         <View className="items-center py-8">
-          <Text className="text-gray-500">Select a time slot to view seats</Text>
+          <Text className="text-gray-500 text-center">Select a time slot to view available seats</Text>
         </View>
       )}
 
       {/* Selected Seat Info */}
       {selectedSeat && (
-        <View className="mt-4 p-3 bg-blue-50 rounded-lg">
+        <View className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
           <Text className="text-center text-blue-800 font-medium">
-            Selected: Seat {seats?.find(s => s.id === selectedSeat)?.seatNumber}
+            ✓ Selected: Seat {seats?.find(s => s.id === selectedSeat)?.seatNumber}
           </Text>
         </View>
       )}

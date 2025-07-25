@@ -11,10 +11,11 @@ import {
 import { ArrowLeftIcon, CheckIcon } from 'react-native-heroicons/outline';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Library, LibraryPlan, TimeSlot } from '../types/api';
-import { bookingApi, studentApi } from '../services/api';
+import { bookingApi, studentApi, timeSlotApi } from '../services/api';
 import { useStorage, STORAGE_KEYS } from '../hooks/useStorage';
 import { BookingScreenProps } from '../types/navigation';
 import SeatSelectionGrid from '../components/SeatSelectionGrid';
+import { useQuery } from '@tanstack/react-query';
 
 export default function EnhancedBookingScreen({ navigation, route }: BookingScreenProps) {
   const { library, selectedPlan: preSelectedPlan } = route.params;
@@ -27,51 +28,38 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
 
   const currentUser = getItem(STORAGE_KEYS.CURRENT_USER);
 
-  // Mock time slots (you can replace this with actual API call)
-  const mockTimeSlots: TimeSlot[] = [
-    {
-      id: 'ts-1',
-      startTime: '09:00',
-      endTime: '12:00',
-      date: new Date().toISOString(),
-      capacity: 10,
-      bookedCount: 3,
-      status: 'AVAILABLE',
-    },
-    {
-      id: 'ts-2',
-      startTime: '12:00',
-      endTime: '15:00',
-      date: new Date().toISOString(),
-      capacity: 10,
-      bookedCount: 7,
-      status: 'AVAILABLE',
-    },
-    {
-      id: 'ts-3',
-      startTime: '15:00',
-      endTime: '18:00',
-      date: new Date().toISOString(),
-      capacity: 10,
-      bookedCount: 2,
-      status: 'AVAILABLE',
-    },
-    {
-      id: 'ts-4',
-      startTime: '18:00',
-      endTime: '21:00',
-      date: new Date().toISOString(),
-      capacity: 10,
-      bookedCount: 10,
-      status: 'BOOKED',
-    },
-  ];
+  // Get today's date for time slots
+  const today = new Date().toISOString().split('T')[0];
+
+  // Fetch time slots from API
+  const { 
+    data: timeSlots = [], 
+    isLoading: timeSlotsLoading 
+  } = useQuery({
+    queryKey: ['timeSlots', library.id, today],
+    queryFn: () => timeSlotApi.getAvailableTimeSlots(library.id, today),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   const bookingMutation = useMutation({
     mutationFn: bookingApi.createBooking,
     onSuccess: (data) => {
       // Invalidate and refetch seat data
       queryClient.invalidateQueries({ queryKey: ['seats', library.id] });
+      
+      // Store booking in local storage
+      const bookingHistory = getItem(STORAGE_KEYS.BOOKING_HISTORY) || [];
+      const newBooking = {
+        id: data.data?.id || `booking_${Date.now()}`,
+        libraryName: library.libraryName,
+        planName: selectedPlan?.planName,
+        seatNumber: selectedSeatNumber,
+        timeSlot: `${selectedTimeSlot?.startTime} - ${selectedTimeSlot?.endTime}`,
+        amount: selectedPlan?.price,
+        date: new Date().toISOString(),
+        status: 'Active'
+      };
+      setItem(STORAGE_KEYS.BOOKING_HISTORY, [...bookingHistory, newBooking]);
       
       Alert.alert(
         'Booking Confirmed!',
@@ -101,10 +89,11 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
       Alert.alert(
         'Authentication Error',
         'Please login again to continue booking.',
-        [{ text: 'Login', onPress: () => navigation.navigate('Login') }]
+        [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
       );
     },
   });
+
   const handleSeatSelect = (seatId: string, seatNumber: number) => {
     setSelectedSeatId(seatId);
     setSelectedSeatNumber(seatNumber);
@@ -113,7 +102,7 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
   const handleBookNowPress = () => {
     if (!currentUser) {
       Alert.alert('Login Required', 'Please login to book a seat.', [
-        { text: 'Login', onPress: () => navigation.navigate('Login') },
+        { text: 'OK', onPress: () => navigation.navigate('Home') },
         { text: 'Cancel', style: 'cancel' }
       ]);
       return;
@@ -164,7 +153,7 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
   };
 
   const renderPlanSelection = () => (
-    <View className="mb-6">
+    <View className="mb-6 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
       <Text className="text-lg font-semibold text-gray-800 mb-3">
         Select Subscription Plan
       </Text>
@@ -172,7 +161,7 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
         <Pressable
           key={plan.id}
           onPress={() => setSelectedPlan(plan)}
-          className={`p-4 rounded-lg border-2 mb-3 ${
+          className={`p-4 rounded-xl border-2 mb-3 ${
             selectedPlan?.id === plan.id
               ? 'border-blue-600 bg-blue-50'
               : 'border-gray-200 bg-white'
@@ -206,20 +195,27 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
   );
 
   const renderTimeSlotSelection = () => (
-    <View className="mb-6">
+    <View className="mb-6 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
       <Text className="text-lg font-semibold text-gray-800 mb-3">
         Select Time Slot
       </Text>
+      
+      {timeSlotsLoading ? (
+        <View className="items-center py-4">
+          <ActivityIndicator size="small" color="#3b82f6" />
+          <Text className="mt-2 text-gray-600 text-sm">Loading time slots...</Text>
+        </View>
+      ) : (
       <View className="flex-row flex-wrap">
-        {mockTimeSlots.map((slot) => (
+        {timeSlots.map((slot: any) => (
           <Pressable
             key={slot.id}
-            onPress={() => slot.status === 'AVAILABLE' && setSelectedTimeSlot(slot)}
-            disabled={slot.status !== 'AVAILABLE'}
-            className={`p-3 rounded-lg border-2 mr-3 mb-3 min-w-24 ${
+            onPress={() => slot.isBookable && setSelectedTimeSlot(slot)}
+            disabled={!slot.isBookable}
+            className={`p-3 rounded-xl border-2 mr-3 mb-3 min-w-28 ${
               selectedTimeSlot?.id === slot.id
                 ? 'border-blue-600 bg-blue-50'
-                : slot.status === 'AVAILABLE'
+                : slot.isBookable
                 ? 'border-gray-200 bg-white'
                 : 'border-gray-200 bg-gray-100'
             }`}
@@ -227,13 +223,13 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
           >
             <Text
               className={`text-center font-medium ${
-                slot.status === 'AVAILABLE' ? 'text-gray-800' : 'text-gray-400'
+                slot.isBookable ? 'text-gray-800' : 'text-gray-400'
               }`}
             >
               {slot.startTime} - {slot.endTime}
             </Text>
             <Text className="text-xs text-center text-gray-500 mt-1">
-              {slot.capacity - slot.bookedCount} available
+              {slot.availableSpots || 0} available
             </Text>
             {selectedTimeSlot?.id === slot.id && (
               <View className="absolute -top-1 -right-1">
@@ -243,6 +239,7 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
           </Pressable>
         ))}
       </View>
+      )}
     </View>
   );
 
@@ -250,11 +247,11 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
     if (!selectedPlan || !selectedTimeSlot || !selectedSeatId) return null;
 
     return (
-      <View className="bg-gray-50 p-4 rounded-lg mb-6">
+      <View className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
         <Text className="text-lg font-semibold text-gray-800 mb-3">
           Booking Summary
         </Text>
-        <View className="space-y-2">
+        <View className="bg-gray-50 p-4 rounded-xl">
           <View className="flex-row justify-between">
             <Text className="text-gray-600">Library:</Text>
             <Text className="font-medium text-gray-800">{library.libraryName}</Text>
@@ -302,9 +299,10 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
 
       <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
         {/* Library Info */}
-        <View className="mb-6">
+        <View className="mb-6 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
           <Text className="text-xl font-bold text-gray-800">{library.libraryName}</Text>
-          <Text className="text-gray-600">{library.address}</Text>
+          <Text className="text-gray-600 mt-1">{library.address}</Text>
+          <Text className="text-sm text-blue-600 mt-2">📍 {library.city}, {library.state}</Text>
         </View>
 
         {renderPlanSelection()}

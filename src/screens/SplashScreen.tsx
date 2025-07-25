@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Text, View, Dimensions, StatusBar, Platform } from 'react-native';
+import { getCurrentUser } from 'aws-amplify/auth';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -8,7 +9,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { replace } from '../utils/NavigationUtil';
-import logoImage from '../assets/images/logo.png'; // replace with actual path
+import { useStorage, STORAGE_KEYS } from '../hooks/useStorage';
+// import logoImage from '../assets/images/logo.png'; // Uncomment when you have the logo
 
 const { height } = Dimensions.get('window');
 
@@ -20,6 +22,7 @@ export default function SplashScreen() {
   const textScale = useSharedValue(0.8);
   const textOpacity = useSharedValue(0);
   const hasNavigated = useRef(false);
+  const { getItem } = useStorage();
 
   useEffect(() => {
     ringSize1.value = withSpring(height * 0.3, { damping: 10, stiffness: 90 });
@@ -43,14 +46,34 @@ export default function SplashScreen() {
     }, 700);
 
     const timer = setTimeout(() => {
-      if (!hasNavigated.current) {
-        replace('Home');
-        hasNavigated.current = true;
-      }
-    }, 3000);
+      checkAuthAndNavigate();
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, []);
+
+  const checkAuthAndNavigate = async () => {
+    if (hasNavigated.current) return;
+    
+    try {
+      const currentUser = await getCurrentUser();
+      const storedUser = getItem(STORAGE_KEYS.CURRENT_USER);
+      
+      if (currentUser && storedUser) {
+        console.log('✅ User is authenticated, navigating to Home');
+        replace('Home');
+      } else {
+        console.log('❌ User not authenticated, staying on auth flow');
+        // User will see Authenticator component
+        replace('Home'); // The Authenticator will handle showing login
+      }
+    } catch (error) {
+      console.log('❌ Auth check failed, staying on auth flow');
+      replace('Home'); // The Authenticator will handle showing login
+    } finally {
+      hasNavigated.current = true;
+    }
+  };
 
   const ring1Style = useAnimatedStyle(() => ({
     width: ringSize1.value,
@@ -99,11 +122,14 @@ export default function SplashScreen() {
           },
           ring2Style,
         ]}
-      >
+        {/* Replace with actual logo when available */}
         <Animated.View
           style={[
             {
-              backgroundColor: 'rgba(250, 204, 21, 0.2)', // stronger ring
+              width: logoSize * 0.6,
+              height: logoSize * 0.6,
+              borderRadius: (logoSize * 0.6) / 2,
+              backgroundColor: '#facc15',
               justifyContent: 'center',
               alignItems: 'center',
               zIndex: 1,
@@ -111,7 +137,16 @@ export default function SplashScreen() {
             ring1Style,
           ]}
         >
-          <Animated.Image
+          <Text
+            style={{
+              fontSize: logoSize * 0.2,
+              fontWeight: 'bold',
+              color: '#0f172a',
+            }}
+          >
+            FD
+          </Text>
+        </Animated.View>
             source={logoImage}
             style={[
               {

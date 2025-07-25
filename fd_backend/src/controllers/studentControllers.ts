@@ -45,7 +45,7 @@ export const getStudentByCognitoId = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { cognitoId, username, email } = req.body;
+  const { cognitoId, username, email, name, phoneNumber, firstName, lastName } = req.body;
   console.log("reached createStudent", req.body);
 
   if (!username || !email) {
@@ -64,8 +64,25 @@ export const getStudentByCognitoId = async (
       return;
     }
 
+    // Parse name into firstName and lastName if provided
+    let parsedFirstName = firstName;
+    let parsedLastName = lastName;
+    
+    if (name && !firstName && !lastName) {
+      const nameParts = name.trim().split(' ');
+      parsedFirstName = nameParts[0] || '';
+      parsedLastName = nameParts.slice(1).join(' ') || '';
+    }
+
     const newStudent = await prisma.student.create({
-      data: { cognitoId, username, email },
+      data: { 
+        cognitoId, 
+        username, 
+        email,
+        firstName: parsedFirstName,
+        lastName: parsedLastName,
+        phoneNumber: phoneNumber || null,
+      },
     });
 
     console.log("✅ Student created successfully:", newStudent.username);

@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   Pressable,
   Image,
+  Alert,
 } from 'react-native';
 import {
   UserIcon,
@@ -15,7 +16,9 @@ import {
   QuestionMarkCircleIcon,
   Cog6ToothIcon,
   ArrowLeftIcon,
+  ArrowRightOnRectangleIcon,
 } from 'react-native-heroicons/outline';
+import { signOut } from 'aws-amplify/auth';
 import { RootStackScreenProps } from '../types/navigation';
 import { useStorage, STORAGE_KEYS } from '../hooks/useStorage';
 
@@ -30,7 +33,7 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
   if (!currentUser) {
     // If no user is logged in, redirect to login
     React.useEffect(() => {
-      navigation.replace('Login');
+      navigation.replace('Home');
     }, []);
     return null;
   }
@@ -38,16 +41,36 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
   const user = {
     name: currentUser.name,
     email: currentUser.email,
-    phone: '+91 XXXXXXXXXX', // You can add phone to user data later
+    phone: currentUser.phoneNumber || 'Not provided',
     profileImage: null,
   };
 
   // Get current active subscription from booking history
   const currentSubscription = bookingHistory.find((booking: any) => booking.status === 'Active');
 
-  const handleLogout = () => {
-    removeItem(STORAGE_KEYS.CURRENT_USER);
-    navigation.replace('Login');
+  const handleLogout = async () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await signOut();
+              removeItem(STORAGE_KEYS.CURRENT_USER);
+              removeItem(STORAGE_KEYS.BOOKING_HISTORY);
+              navigation.replace('Home');
+            } catch (error) {
+              console.error('Sign out error:', error);
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const menuItems = [
@@ -76,7 +99,7 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
       onPress: () => {},
     },
     {
-      icon: ArrowLeftIcon,
+      icon: ArrowRightOnRectangleIcon,
       title: 'Logout',
       subtitle: 'Sign out of your account',
       onPress: handleLogout,
@@ -84,7 +107,7 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
   ];
 
   const renderProfileHeader = () => (
-    <View className="items-center py-6 bg-blue-50">
+    <View className="items-center py-8 bg-gradient-to-br from-blue-50 to-blue-100">
       <View className="w-24 h-24 bg-blue-600 rounded-full items-center justify-center mb-4">
         {user.profileImage ? (
           <Image
@@ -92,12 +115,16 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
             className="w-24 h-24 rounded-full"
           />
         ) : (
-          <UserIcon size={40} color="white" />
+          <Text className="text-white font-bold text-2xl">
+            {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+          </Text>
         )}
       </View>
       <Text className="text-xl font-bold text-gray-800">{user.name}</Text>
       <Text className="text-gray-600">{user.email}</Text>
-      <Text className="text-gray-600">{user.phone}</Text>
+      {user.phone !== 'Not provided' && (
+        <Text className="text-gray-600">{user.phone}</Text>
+      )}
     </View>
   );
 
@@ -107,7 +134,7 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
         Current Subscription
       </Text>
       {currentSubscription ? (
-        <View className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+        <View className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
           <View className="flex-row justify-between items-start mb-2">
             <View className="flex-1">
               <Text className="font-semibold text-gray-800">
@@ -115,6 +142,9 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
               </Text>
               <Text className="text-sm text-gray-600">
                 {currentSubscription.planName}
+              </Text>
+              <Text className="text-sm text-gray-600">
+                Time: {currentSubscription.timeSlot}
               </Text>
             </View>
             <View className={`px-2 py-1 rounded-full ${
@@ -136,16 +166,16 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
               Seat: {currentSubscription.seatNumber}
             </Text>
             <Text className="text-sm text-gray-600">
-              {new Date(booking.date).toLocaleDateString()}
+              {new Date(currentSubscription.date).toLocaleDateString()}
             </Text>
           </View>
         </View>
       ) : (
-        <View className="bg-gray-50 p-6 rounded-lg items-center">
+        <View className="bg-gray-50 p-6 rounded-2xl items-center">
           <Text className="text-gray-600 mb-2">No active subscription</Text>
           <Pressable
             onPress={() => navigation.navigate('Home')}
-            className="bg-blue-600 px-4 py-2 rounded-lg"
+            className="bg-blue-600 px-6 py-3 rounded-xl"
           >
             <Text className="text-white font-medium">Browse Libraries</Text>
           </Pressable>
@@ -160,10 +190,10 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
         Booking History
       </Text>
       {bookingHistory.length > 0 ? (
-        bookingHistory.map((booking) => (
+        bookingHistory.slice(0, 5).map((booking: any) => (
           <View
             key={booking.id}
-            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-3"
+            className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm mb-3"
           >
             <View className="flex-row justify-between items-start mb-2">
               <View className="flex-1">
@@ -173,13 +203,16 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
                 <Text className="text-sm text-gray-600">
                   {booking.planName}
                 </Text>
+                <Text className="text-sm text-gray-600">
+                  Seat: {booking.seatNumber}
+                </Text>
                 <Text className="text-xs text-gray-500">
-                  {booking.date}
+                  {new Date(booking.date).toLocaleDateString()}
                 </Text>
               </View>
               <View className="items-end">
                 <Text className="font-semibold text-gray-800">
-                  ₹{booking.amount.toLocaleString()}
+                  ₹{booking.amount?.toLocaleString() || 0}
                 </Text>
                 <View className={`px-2 py-1 rounded-full mt-1 ${
                   booking.status === 'Active' 
@@ -199,7 +232,7 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
           </View>
         ))
       ) : (
-        <View className="bg-gray-50 p-6 rounded-lg items-center">
+        <View className="bg-gray-50 p-6 rounded-2xl items-center">
           <ClockIcon size={40} color="#9ca3af" />
           <Text className="text-gray-600 mt-2">No booking history</Text>
         </View>
@@ -247,7 +280,7 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
           <Text className="text-lg font-semibold text-gray-800 mb-3">
             Account Settings
           </Text>
-          <View className="bg-white rounded-lg overflow-hidden shadow-sm">
+          <View className="bg-white rounded-2xl overflow-hidden shadow-sm">
             {menuItems.map(renderMenuItem)}
           </View>
         </View>

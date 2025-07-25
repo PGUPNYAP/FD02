@@ -502,13 +502,19 @@ console.log("✅ Seeded all library plans");
 
 
   // TimeSlots
- await prisma.timeSlot.createMany({
+  // TimeSlots - Add more realistic time slots for each library
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  await prisma.timeSlot.createMany({
   data: [
+    // Library 1 - Today's slots
     {
       id: 'ts-1',
-      startTime: '10:00',
+      startTime: '09:00',
       endTime: '12:00',
-      date: new Date(),
+      date: today,
       capacity: 10,
       bookedCount: 2,
       status: 'AVAILABLE',
@@ -519,11 +525,11 @@ console.log("✅ Seeded all library plans");
     {
       id: 'ts-2',
       startTime: '12:00',
-      endTime: '14:00',
-      date: new Date(),
-      capacity: 8,
-      bookedCount: 8,
-      status: 'BOOKED',
+      endTime: '15:00',
+      date: today,
+      capacity: 10,
+      bookedCount: 7,
+      status: 'AVAILABLE',
       libraryId: 'library-1',
       createdAt: new Date(),
       updatedAt: new Date()
@@ -531,20 +537,72 @@ console.log("✅ Seeded all library plans");
     {
       id: 'ts-3',
       startTime: '15:00',
-      endTime: '17:00',
-      date: new Date(),
-      capacity: 6,
-      bookedCount: 0,
+      endTime: '18:00',
+      date: today,
+      capacity: 10,
+      bookedCount: 2,
+      status: 'AVAILABLE',
+      libraryId: 'library-1',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'ts-4',
+      startTime: '18:00',
+      endTime: '21:00',
+      date: today,
+      capacity: 10,
+      bookedCount: 10,
+      status: 'BOOKED',
+      libraryId: 'library-1',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    
+    // Library 2 - Today's slots
+    {
+      id: 'ts-5',
+      startTime: '08:00',
+      endTime: '11:00',
+      date: today,
+      capacity: 10,
+      bookedCount: 3,
       status: 'AVAILABLE',
       libraryId: 'library-2',
       createdAt: new Date(),
       updatedAt: new Date()
     },
     {
-      id: 'ts-4',
-      startTime: '09:00',
-      endTime: '11:00',
-      date: new Date(),
+      id: 'ts-6',
+      startTime: '11:00',
+      endTime: '14:00',
+      date: today,
+      capacity: 8,
+      bookedCount: 5,
+      status: 'AVAILABLE',
+      libraryId: 'library-2',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'ts-7',
+      startTime: '14:00',
+      endTime: '17:00',
+      date: today,
+      capacity: 8,
+      bookedCount: 8,
+      status: 'BOOKED',
+      libraryId: 'library-2',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    
+    // Library 3 - Today's slots
+    {
+      id: 'ts-8',
+      startTime: '10:00',
+      endTime: '13:00',
+      date: today,
       capacity: 12,
       bookedCount: 4,
       status: 'AVAILABLE',
@@ -553,22 +611,62 @@ console.log("✅ Seeded all library plans");
       updatedAt: new Date()
     },
     {
-      id: 'ts-5',
-      startTime: '11:00',
-      endTime: '13:00',
-      date: new Date(),
-      capacity: 10,
-      bookedCount: 10,
-      status: 'BOOKED',
+      id: 'ts-9',
+      startTime: '13:00',
+      endTime: '15:00',
+      date: today,
+      capacity: 12,
+      bookedCount: 8,
+      status: 'AVAILABLE',
       libraryId: 'library-3',
       createdAt: new Date(),
       updatedAt: new Date()
     },
+    
+    // Tomorrow's slots for Library 1
     {
-      id: 'ts-6',
-      startTime: '13:00',
+      id: 'ts-10',
+      startTime: '09:00',
+      endTime: '12:00',
+      date: tomorrow,
+      capacity: 10,
+      bookedCount: 0,
+      status: 'AVAILABLE',
+      libraryId: 'library-1',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'ts-11',
+      startTime: '12:00',
       endTime: '15:00',
-      date: new Date(),
+      date: tomorrow,
+      capacity: 10,
+      bookedCount: 0,
+      status: 'AVAILABLE',
+      libraryId: 'library-1',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'ts-12',
+      startTime: '15:00',
+      endTime: '18:00',
+      date: tomorrow,
+      capacity: 10,
+      bookedCount: 0,
+      status: 'AVAILABLE',
+      libraryId: 'library-1',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    
+    // Library 4 - Today's slots
+    {
+      id: 'ts-13',
+      startTime: '07:00',
+      endTime: '10:00',
+      date: today,
       capacity: 8,
       bookedCount: 5,
       status: 'AVAILABLE',
@@ -577,23 +675,25 @@ console.log("✅ Seeded all library plans");
       updatedAt: new Date()
     },
     {
-      id: 'ts-7',
-      startTime: '15:00',
-      endTime: '17:00',
-      date: new Date(),
-      capacity: 6,
-      bookedCount: 6,
-      status: 'BOOKED',
+      id: 'ts-14',
+      startTime: '10:00',
+      endTime: '13:00',
+      date: today,
+      capacity: 15,
+      bookedCount: 8,
+      status: 'AVAILABLE',
       libraryId: 'library-4',
       createdAt: new Date(),
       updatedAt: new Date()
     },
+    
+    // Library 5 - Today's slots
     {
-      id: 'ts-8',
-      startTime: '17:00',
-      endTime: '19:00',
-      date: new Date(),
-      capacity: 5,
+      id: 'ts-15',
+      startTime: '06:00',
+      endTime: '09:00',
+      date: today,
+      capacity: 20,
       bookedCount: 1,
       status: 'AVAILABLE',
       libraryId: 'library-5',
@@ -601,33 +701,45 @@ console.log("✅ Seeded all library plans");
       updatedAt: new Date()
     },
     {
-      id: 'ts-9',
-      startTime: '08:00',
-      endTime: '10:00',
-      date: new Date(),
-      capacity: 7,
-      bookedCount: 7,
+      id: 'ts-16',
+      startTime: '09:00',
+      endTime: '12:00',
+      date: today,
+      capacity: 20,
+      bookedCount: 15,
+      status: 'AVAILABLE',
+      libraryId: 'library-5',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'ts-17',
+      startTime: '12:00',
+      endTime: '15:00',
+      date: today,
+      capacity: 20,
+      bookedCount: 20,
       status: 'BOOKED',
       libraryId: 'library-5',
       createdAt: new Date(),
       updatedAt: new Date()
     },
     {
-      id: 'ts-10',
-      startTime: '18:00',
-      endTime: '20:00',
-      date: new Date(),
-      capacity: 10,
-      bookedCount: 3,
+      id: 'ts-18',
+      startTime: '15:00',
+      endTime: '18:00',
+      date: today,
+      capacity: 20,
+      bookedCount: 12,
       status: 'AVAILABLE',
-      libraryId: 'library-2',
+      libraryId: 'library-5',
       createdAt: new Date(),
       updatedAt: new Date()
     }
   ]
 });
 
-console.log("✅ Seeded time slots");
+console.log("✅ Seeded comprehensive time slots for all libraries");
 
   // Bookings
   await prisma.booking.createMany({ data: [
