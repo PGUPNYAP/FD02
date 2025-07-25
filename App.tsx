@@ -1,44 +1,69 @@
-// App.tsx
-import React, { useEffect, useState } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React, { useEffect } from 'react';
+import { SafeAreaView } from 'react-native';
+import { Amplify } from 'aws-amplify';
+import { Hub } from 'aws-amplify/utils';
+import awsconfig from './src/aws-exports';
+import { Authenticator } from '@aws-amplify/ui-react-native';
 import Navigation from './src/navigation/Navigation';
 import { useStorage, STORAGE_KEYS } from './src/hooks/useStorage';
+import axios from 'axios';
 
-import SplashScreen from './src/screens/SplashScreen';
-import './global.css';
-
-
-const queryClient = new QueryClient();
+// ✅ Configure Amplify
+Amplify.configure(awsconfig);
 
 export default function App() {
-  const [checking, setChecking] = useState(true);
-  const [initialRoute, setInitialRoute] = useState<'Login' | 'Home'>('Login');
-  const { getItem } = useStorage();
+  const { setItem } = useStorage();
 
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const user = getItem(STORAGE_KEYS.CURRENT_USER);
-        if (user) {
-          setInitialRoute('Home');
+    const listener = async (data: any) => {
+      console.log('🔁 Hub Event:', data.payload.event); // For debugging
+
+      if (data.payload.event === 'signedIn') {
+        const user = data.payload.data;
+        const { email, name, phone_number, sub: cognitoId } = user.attributes;
+
+        const payload = {
+          email,
+          name,
+          phoneNumber: phone_number,
+          cognitoId,
+        };
+
+        try {
+          const res = await axios.post('http://10.0.2.2:3001/api/students', payload);
+          const backendUser = res.data?.student || res.data;
+
+          const userData = {
+            id: backendUser.id,
+            email,
+            name,
+            phoneNumber: phone_number,
+            cognitoId,
+            createdAt: new Date().toISOString(),
+          };
+
+          setItem(STORAGE_KEYS.CURRENT_USER, userData);
+        } catch (err) {
+          console.error('❌ Backend sync failed:', err);
         }
-      } catch (err) {
-        console.error('Failed to load stored user:', err);
-      } finally {
-        setChecking(false);
       }
     };
 
-    checkUser();
+    const unsubscribe = Hub.listen('auth', listener);
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
-  if (checking) {
-    return null; // or a loading spinner component
-  }
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <Navigation initialRoute={initialRoute} />
-    </QueryClientProvider>
+    <SafeAreaView style={{ flex: 1 }}>
+      <Authenticator.Provider>
+        {/* ✅ Simplify to avoid issues (you can add name & phone later once configured properly in Cognito) */}
+        <Authenticator signUpAttributes={['email']}>
+          <Navigation initialRoute="Home" />
+        </Authenticator>
+      </Authenticator.Provider>
+    </SafeAreaView>
   );
 }
