@@ -17,6 +17,7 @@ export type RootStackParamList = {
     library: Library;
     selectedPlan?: LibraryPlan;
   };
+  ForgotPassword: undefined;
 };
 
 // Tab Navigator Types

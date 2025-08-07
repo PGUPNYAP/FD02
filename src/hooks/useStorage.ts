@@ -1,20 +1,19 @@
-import { MMKV } from 'react-native-mmkv';
-
-const storage = new MMKV();
+// src/hooks/useStorage.ts
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const useStorage = () => {
-  const setItem = (key: string, value: any) => {
+  const setItem = async (key: string, value: any): Promise<void> => {
     try {
       const jsonValue = JSON.stringify(value);
-      storage.set(key, jsonValue);
+      await AsyncStorage.setItem(key, jsonValue);
     } catch (error) {
       console.error('Error saving to storage:', error);
     }
   };
 
-  const getItem = <T>(key: string): T | null => {
+  const getItem = async <T>(key: string): Promise<T | null> => {
     try {
-      const jsonValue = storage.getString(key);
+      const jsonValue = await AsyncStorage.getItem(key);
       return jsonValue ? JSON.parse(jsonValue) : null;
     } catch (error) {
       console.error('Error reading from storage:', error);
@@ -22,17 +21,17 @@ export const useStorage = () => {
     }
   };
 
-  const removeItem = (key: string) => {
+  const removeItem = async (key: string): Promise<void> => {
     try {
-      storage.delete(key);
+      await AsyncStorage.removeItem(key);
     } catch (error) {
       console.error('Error removing from storage:', error);
     }
   };
 
-  const clear = () => {
+  const clear = async (): Promise<void> => {
     try {
-      storage.clearAll();
+      await AsyncStorage.clear();
     } catch (error) {
       console.error('Error clearing storage:', error);
     }
@@ -53,4 +52,4 @@ export const STORAGE_KEYS = {
   ALL_USERS: 'all_users',
   BOOKING_HISTORY: 'booking_history',
   FAVORITES: 'favorites',
-};
+} as const;

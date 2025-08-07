@@ -45,7 +45,7 @@ export const getStudentByCognitoId = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { cognitoId, username, email } = req.body;
+  const {cognitoId,username,email,firstName,lastName,phoneNumber} = req.body;
   console.log("reached createStudent", req.body);
 
   if (!username || !email) {
@@ -65,7 +65,7 @@ export const getStudentByCognitoId = async (
     }
 
     const newStudent = await prisma.student.create({
-      data: { cognitoId, username, email },
+      data: {cognitoId,username, email, firstName, lastName, phoneNumber},
     });
 
     console.log("✅ Student created successfully:", newStudent.username);

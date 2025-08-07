@@ -11,6 +11,7 @@ import reviewRoutes from './routes/reviewRoutes';
 import timeSlotRoutes from './routes/timeSlotRoutes';
 import studentRouter from './routes/studentRoutes';
 import { authMiddleware } from './middlewares/middleware';
+import paymentRoutes from './routes/paymentRoutes';
 
 dotenv.config();
 
@@ -31,6 +32,9 @@ app.get('/', (req, res) => {
 });
 
 // Routes
+// Payment routes
+app.use('/api/payments', paymentRoutes);
+
 // app.use('/api/students', studentRoutes);
 app.use('/api/library', libraryRouter);
 app.use("/api/librarians", 

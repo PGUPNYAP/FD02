@@ -191,7 +191,7 @@ export const studentApi = {
   }): Promise<{ success: boolean; data?: any; message: string }> => {
     try {
       console.log('📝 Creating student with data:', studentData);
-      const response = await api.post('/students', studentData);
+      const response = await api.post('/students/createStudent', studentData);
       console.log('✅ Student created successfully:', response.data);
       return { success: true, data: response.data, message: response.data.message || 'Student created successfully' };
     } catch (error: any) {
@@ -267,7 +267,7 @@ export const seatApi = {
           });
         }
         
-        return seats;
+       return seats;
       } catch (fallbackError) {
         throw new Error('Failed to load seats');
       }

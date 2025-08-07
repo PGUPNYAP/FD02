@@ -62,6 +62,15 @@ enum SeatStatus {
   RESERVED
 }
 
+enum PaymentOrderStatus {
+  CREATED
+  ATTEMPTED
+  PAID
+  FAILED
+  TRANSFERRED
+}
+
+
 enum TimeSlotStatus {
   AVAILABLE
   BOOKED
@@ -103,6 +112,7 @@ model Student {
   reviews       Review[]
   complaints    Complaint[]
   notifications Notification[]
+  payments      Payment[]
 
   @@index([email])
   @@index([cognitoId])
@@ -159,10 +169,12 @@ model Librarian {
   kycSubmittedAt DateTime?
   kycVerifiedAt  DateTime?
   kycRejectedAt  DateTime?
+
   // Relations
   libraries      Library[]
   transactions   Transaction[]
   notifications  Notification[]
+  payments       Payment[]
 
   @@index([email])
   @@index([cognitoId])
@@ -375,6 +387,40 @@ model Transaction {
   @@index([paymentStatus])
   @@index([createdAt])
 }
+
+model Payment {
+  id        String   @id @default(uuid())
+  amount    Decimal  @db.Decimal(10, 2) // Total amount paid by student (in INR)
+  platformFee Decimal @db.Decimal(10, 2) @default(0) // Your platform's cut (in INR)
+  currency  String   @default("INR")
+  
+  // Razorpay Integration Fields
+  razorpayOrderId    String  @unique
+  razorpayPaymentId  String?
+  razorpaySignature  String?
+  razorpayTransferId String? // To store the ID of the transfer to the librarian
+  
+  status      PaymentOrderStatus @default(CREATED)
+  paymentDate DateTime?
+  
+  // Relations
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  librarianId String
+  librarian   Librarian @relation(fields: [librarianId], references: [id], onDelete: Cascade)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([studentId])
+  @@index([librarianId])
+  @@index([status])
+  @@index([razorpayOrderId])
+  @@index([paymentDate])
+}
+
 
 // Review System
 model Review {

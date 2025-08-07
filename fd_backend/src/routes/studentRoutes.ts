@@ -1,9 +1,11 @@
 import express from "express";
-import { createStudent, getStudentByCognitoId } from '../controllers/studentControllers';
+import { createStudent,
+     getStudentByCognitoId 
+    } from '../controllers/studentControllers';
 
 const router = express.Router();
 
-router.post('/', createStudent);
+router.post('/createStudent', createStudent);
 router.get('/:cognitoId', getStudentByCognitoId);
 
 export default router;

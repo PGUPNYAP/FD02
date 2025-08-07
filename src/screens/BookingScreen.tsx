@@ -14,7 +14,8 @@ import { Library, LibraryPlan, TimeSlot, Seat } from '../types/api';
 import { bookingApi } from '../services/api';
 import { useStorage, STORAGE_KEYS } from '../hooks/useStorage';
 import { BookingScreenProps } from '../types/navigation';
-
+import RazorpayCheckout from 'react-native-razorpay';
+import axios from 'axios';
 
 export default function BookingScreen({ navigation, route }: BookingScreenProps) {
   const { library, selectedPlan: preSelectedPlan } = route.params;
@@ -23,7 +24,7 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
   const [selectedSeatNumber, setSelectedSeatNumber] = useState<string>('');
   const [isBooking, setIsBooking] = useState(false);
   const { getItem, setItem } = useStorage();
-
+  const RAZORPAY_KEY = 'rzp_test_WOnh0XISrlnHjs';
   const currentUser = getItem(STORAGE_KEYS.CURRENT_USER);
 
   // Mock data for time slots and seats (since backend doesn't provide these endpoints)
@@ -56,6 +57,103 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
       status: 'BOOKED',
     },
   ];
+  type RazorpayOrderResponse = {
+    orderId: string;
+    amount: number;
+  };
+
+  type RazorpayOptions = {
+    key: string;
+    name: string;
+    description: string;
+    image?: string;
+    order_id: string;
+    currency: string;
+    amount: number;
+    prefill: {
+      name: string;
+      email: string;
+      contact: string;
+    };
+    theme?: { color: string };
+  };
+
+  type RazorpayPaymentResult = {
+    razorpay_payment_id: string;
+    razorpay_order_id: string;
+    razorpay_signature: string;
+  };
+
+  const handleRazorpayPayment = async (): Promise<void> => {
+    if (!selectedPlan || !selectedTimeSlot || !selectedSeatNumber || !currentUser) return;
+
+    setIsBooking(true);
+    try {
+      // 1. Create Razorpay order via your backend
+      const amount = Math.round(Number(selectedPlan.price) );
+      const { data } = await axios.post<RazorpayOrderResponse>(
+        'http://10.0.2.2:3001/api/payments/create-order',
+        {
+          librarianId: 'lib-1',
+          studentId: 'stu-1',
+          amount: amount,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      // 2. Configure Razorpay options
+      const options: RazorpayOptions = {
+        key: RAZORPAY_KEY,
+        name: library.libraryName || 'Library Booking',
+        description: `Booking for ${selectedSeatNumber}`,
+        order_id: data.orderId,
+        currency: 'INR',
+        amount: data.amount,
+        prefill: {
+          name: 'Student',
+          email: 'student@example.com',
+          contact: '9999999999',
+        },
+        theme: { color: '#3399cc' },
+      };
+
+      // 3. Open Razorpay Checkout
+      const paymentResult = (await RazorpayCheckout.open(options)) as RazorpayPaymentResult;
+
+      // 4. Notify backend/payment webhook
+      await axios.post(
+        'http://10.0.2.2:3001/api/payments/webhook',
+        {
+          event: 'payment.captured',
+          razorpay_order_id: paymentResult.razorpay_order_id,
+          razorpay_payment_id: paymentResult.razorpay_payment_id,
+          razorpay_signature: paymentResult.razorpay_signature,
+          student_id: 'stu-1',
+          librarianId: 'lib-1',
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      // 5. Proceed with booking your seat
+      await handleBookingSubmit();
+
+    } catch (err: any) {
+      setIsBooking(false);
+      if (err && err.description) {
+        Alert.alert('Payment Failed', err.description);
+      } else {
+        Alert.alert('Error', 'Payment was not completed.');
+      }
+    }
+  };
 
   // Generate seat numbers based on total seats
   const generateSeatNumbers = (totalSeats: number): string[] => {
@@ -68,11 +166,27 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
 
   const availableSeats = generateSeatNumbers(library.totalSeats);
 
-  const handleBookNowPress = () => {
+  // const handleBookNowPress = () => {
+  //   if (!currentUser) {
+  //     Alert.alert('Login Required', 'Please login to book a seat.', [
+  //       { text: 'Login', onPress: () => navigation.navigate('Login') },
+  //       { text: 'Cancel', style: 'cancel' }
+  //     ]);
+  //     return;
+  //   }
+
+  //   if (!selectedPlan || !selectedTimeSlot || !selectedSeatNumber) {
+  //     Alert.alert('Incomplete Selection', 'Please select a plan, time slot, and seat number.');
+  //     return;
+  //   }
+
+  //   handleBookingSubmit();
+  // };
+  const handleBookNowPress = (): void => {
     if (!currentUser) {
       Alert.alert('Login Required', 'Please login to book a seat.', [
         { text: 'Login', onPress: () => navigation.navigate('Login') },
-        { text: 'Cancel', style: 'cancel' }
+        { text: 'Cancel', style: 'cancel' },
       ]);
       return;
     }
@@ -82,22 +196,22 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
       return;
     }
 
-    handleBookingSubmit();
+    handleRazorpayPayment();
   };
 
   const handleBookingSubmit = async () => {
     if (!selectedPlan || !selectedTimeSlot || !selectedSeatNumber || !currentUser) return;
-    
+
     setIsBooking(true);
     try {
       // Use the seeded student ID that exists in your backend
       const studentId = 'stu-1'; // This matches your backend seed data
-      
+
       const bookingData = {
         studentId: studentId,
         libraryId: library.id,
         planId: selectedPlan.id,
-        timeSlotId: selectedTimeSlot.id, 
+        timeSlotId: selectedTimeSlot.id,
         seatId: `seat_${selectedSeatNumber.replace(/\s+/g, '_').toLowerCase()}`, // Generate seat ID
         totalAmount: parseFloat(selectedPlan.price.toString()),
       };
@@ -105,7 +219,7 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
       console.log('Submitting booking data:', bookingData);
 
       const result = await bookingApi.createBooking(bookingData);
-      
+
       if (result.success) {
         // Save booking to user's history
         const bookingHistory = getItem(STORAGE_KEYS.BOOKING_HISTORY) || [];
@@ -119,7 +233,7 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
           date: new Date().toISOString(),
           status: 'Active'
         };
-        setItem(STORAGE_KEYS.BOOKING_HISTORY, [...bookingHistory, newBooking]);
+        // setItem(STORAGE_KEYS.BOOKING_HISTORY, [...bookingHistory, newBooking]);
 
         Alert.alert(
           'Booking Confirmed!',
@@ -149,11 +263,10 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
         <Pressable
           key={plan.id}
           onPress={() => setSelectedPlan(plan)}
-          className={`p-4 rounded-lg border-2 mb-3 ${
-            selectedPlan?.id === plan.id
+          className={`p-4 rounded-lg border-2 mb-3 ${selectedPlan?.id === plan.id
               ? 'border-blue-600 bg-blue-50'
               : 'border-gray-200 bg-white'
-          }`}
+            }`}
           android_ripple={{ color: '#f3f4f6' }}
         >
           <View className="flex-row justify-between items-center">
@@ -193,19 +306,17 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
             key={slot.id}
             onPress={() => slot.status === 'AVAILABLE' && setSelectedTimeSlot(slot)}
             disabled={slot.status !== 'AVAILABLE'}
-            className={`p-3 rounded-lg border-2 mr-3 mb-3 min-w-24 ${
-              selectedTimeSlot?.id === slot.id
+            className={`p-3 rounded-lg border-2 mr-3 mb-3 min-w-24 ${selectedTimeSlot?.id === slot.id
                 ? 'border-blue-600 bg-blue-50'
                 : slot.status === 'AVAILABLE'
-                ? 'border-gray-200 bg-white'
-                : 'border-gray-200 bg-gray-100'
-            }`}
+                  ? 'border-gray-200 bg-white'
+                  : 'border-gray-200 bg-gray-100'
+              }`}
             android_ripple={{ color: '#f3f4f6' }}
           >
             <Text
-              className={`text-center font-medium ${
-                slot.status === 'AVAILABLE' ? 'text-gray-800' : 'text-gray-400'
-              }`}
+              className={`text-center font-medium ${slot.status === 'AVAILABLE' ? 'text-gray-800' : 'text-gray-400'
+                }`}
             >
               {slot.startTime} - {slot.endTime}
             </Text>
@@ -318,11 +429,10 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
         <Pressable
           onPress={handleBookNowPress}
           disabled={!selectedPlan || !selectedTimeSlot || !selectedSeatNumber || isBooking}
-          className={`py-4 rounded-lg ${
-            selectedPlan && selectedTimeSlot && selectedSeatNumber && !isBooking
+          className={`py-4 rounded-lg ${selectedPlan && selectedTimeSlot && selectedSeatNumber && !isBooking
               ? 'bg-blue-600'
               : 'bg-gray-300'
-          }`}
+            }`}
           android_ripple={{ color: '#2563eb' }}
         >
           {isBooking ? (
