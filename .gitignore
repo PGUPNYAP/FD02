@@ -4,7 +4,7 @@ fd_backend_main/node_modules/
 fd_backend_main/node_modules/
 
 fd_backend_main/.env
-
+node_modules/
 # OSX
 #
 .DS_Store
