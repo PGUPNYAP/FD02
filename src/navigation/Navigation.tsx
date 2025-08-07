@@ -24,7 +24,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function Navigation({ initialRoute }: NavigationProps) {
   return (
     <NavigationContainer ref={navigationRef}>
-      <Stack.Navigator initialRouteName="Login"
+      <Stack.Navigator initialRouteName={initialRoute}
       //{initialRoute}
        // === 'Login' ? 'Login' : 'Splash'
          screenOptions={{ headerShown: false }}>
