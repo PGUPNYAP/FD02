@@ -325,53 +325,50 @@ async function main() {
 console.log("✅ Seeded 5 libraries in Delhi (Mandawali & Laxmi Nagar)");
 
   // Seats
- await prisma.seat.createMany({
-  data: [
-    // Library 1
-    { id: 'seat-1', seatNumber: 1, status: 'AVAILABLE', isActive: true, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-2', seatNumber: 2, status: 'OCCUPIED', isActive: true, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-3', seatNumber: 3, status: 'MAINTENANCE', isActive: false, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-16', seatNumber: 4, status: 'AVAILABLE', isActive: true, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-17', seatNumber: 5, status: 'AVAILABLE', isActive: true, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-18', seatNumber: 6, status: 'AVAILABLE', isActive: true, libraryId: 'library-1', createdAt: new Date(), updatedAt: new Date() },
+const libraries = [
+  'library-1',
+  'library-2',
+  'library-3',
+  'library-4',
+  'library-5',
+];
 
-    // Library 2
-    { id: 'seat-4', seatNumber: 1, status: 'AVAILABLE', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-5', seatNumber: 2, status: 'OCCUPIED', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-6', seatNumber: 3, status: 'AVAILABLE', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-19', seatNumber: 4, status: 'AVAILABLE', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-20', seatNumber: 5, status: 'AVAILABLE', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-21', seatNumber: 6, status: 'AVAILABLE', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() },
+const seatsData = [];
 
-    // Library 3
-    { id: 'seat-7', seatNumber: 1, status: 'MAINTENANCE', isActive: false, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-8', seatNumber: 2, status: 'AVAILABLE', isActive: true, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-9', seatNumber: 3, status: 'OCCUPIED', isActive: true, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-22', seatNumber: 4, status: 'AVAILABLE', isActive: true, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-23', seatNumber: 5, status: 'AVAILABLE', isActive: true, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-24', seatNumber: 6, status: 'AVAILABLE', isActive: true, libraryId: 'library-3', createdAt: new Date(), updatedAt: new Date() },
+let seatIdCounter = 1;
 
-    // Library 4
-    { id: 'seat-10', seatNumber: 1, status: 'AVAILABLE', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-11', seatNumber: 2, status: 'OCCUPIED', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-12', seatNumber: 3, status: 'AVAILABLE', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-25', seatNumber: 4, status: 'AVAILABLE', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-26', seatNumber: 5, status: 'AVAILABLE', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-27', seatNumber: 6, status: 'AVAILABLE', isActive: true, libraryId: 'library-4', createdAt: new Date(), updatedAt: new Date() },
+for (const libraryId of libraries) {
+  for (let seatNumber = 1; seatNumber <= 30; seatNumber++) {
+    let status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' = 'AVAILABLE';
+    let isActive = true;
 
-    // Library 5
-    { id: 'seat-13', seatNumber: 1, status: 'AVAILABLE', isActive: true, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-14', seatNumber: 2, status: 'MAINTENANCE', isActive: false, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-15', seatNumber: 3, status: 'OCCUPIED', isActive: true, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-28', seatNumber: 4, status: 'AVAILABLE', isActive: true, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-29', seatNumber: 5, status: 'AVAILABLE', isActive: true, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() },
-    { id: 'seat-30', seatNumber: 6, status: 'AVAILABLE', isActive: true, libraryId: 'library-5', createdAt: new Date(), updatedAt: new Date() }
-  ]
+    // Example status logic — you can adjust to match your rules
+    if (seatNumber % 10 === 0) {
+      status = 'MAINTENANCE';
+      isActive = false;
+    } else if (seatNumber % 4 === 0) {
+      status = 'OCCUPIED';
+    }
+
+    seatsData.push({
+      id: `seat-${seatIdCounter}`,
+      seatNumber,
+      status,
+      isActive,
+      libraryId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    seatIdCounter++;
+  }
+}
+
+await prisma.seat.createMany({
+  data: seatsData,
 });
 
-console.log("✅ Seeded 30 seats across 5 libraries");
-
-
+console.log(`✅ Seeded ${seatsData.length} seats across ${libraries.length} libraries`);
 
   // Social Links
   await prisma.socialLink.createMany({ data: [
@@ -380,137 +377,105 @@ console.log("✅ Seeded 30 seats across 5 libraries");
     { id: 'social-3', platform: 'twitter', url: 'https://twitter.com/readers-arena', isActive: true, libraryId: 'library-2', createdAt: new Date(), updatedAt: new Date() }
   ]});
   console.log("✅ Seeded social links");
+// 💡 Library Plan Config
+const planConfig = [
+  // Library 1
+  {
+    libraryId: 'library-1',
+    monthly: { 6: 600, 8: 800, 12: 1000 },
+    quarterly: { 12: 3200 }
+  },
+  // Library 2
+  {
+    libraryId: 'library-2',
+    monthly: { 6: 600, 8: 800, 12: 1000 },
+    quarterly: { 6: 1800, 8: 2400 }
+  },
+  // Library 3
+  {
+    libraryId: 'library-3',
+    monthly: { 6: 500, 8: 700 },
+    quarterly: { 6: 1500, 8: 2100 }
+  },
+  // Library 4
+  {
+    libraryId: 'library-4',
+    monthly: { 6: 550, 8: 750 },
+    quarterly: { 6: 1650, 8: 2250 }
+  },
+  // Library 5
+  {
+    libraryId: 'library-5',
+    monthly: { 6: 580, 8: 780 },
+    quarterly: { 6: 1740, 8: 2340 }
+  }
+];
 
-  // Library Plans
-await prisma.libraryPlan.createMany({
-  data: [
-    {
-      id: 'plan-1',
-      planName: 'Monthly',
-      hours: 200,
-      days: 30,
-      months: 1,
-      price: 2500.0,
-      planType: 'monthly',
-      description: 'Access for one month',
-      isActive: true,
-      libraryId: 'library-1',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: 'plan-2',
-      planName: 'Weekly',
-      hours: 40,
-      days: 7,
-      months: 0,
-      price: 700.0,
-      planType: 'weekly',
-      description: 'Access for a week',
-      isActive: true,
-      libraryId: 'library-2',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: 'plan-3',
-      planName: 'Daily Pass',
-      hours: 8,
-      days: 1,
-      months: 0,
-      price: 120.0,
-      planType: 'daily',
-      description: 'One-day access with 8 hours of usage',
-      isActive: true,
-      libraryId: 'library-3',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: 'plan-4',
-      planName: 'Weekend Pass',
-      hours: 16,
-      days: 2,
-      months: 0,
-      price: 250.0,
-      planType: 'weekend',
-      description: 'Access for Saturday and Sunday',
-      isActive: true,
-      libraryId: 'library-4',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: 'plan-5',
-      planName: 'Quarterly Plan',
-      hours: 600,
-      days: 90,
-      months: 3,
-      price: 6000.0,
-      planType: 'quarterly',
-      description: 'Best for long-term users – 3-month access',
-      isActive: true,
-      libraryId: 'library-5',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: 'plan-6',
-      planName: 'Student Special',
-      hours: 100,
-      days: 30,
-      months: 1,
-      price: 1200.0,
-      planType: 'monthly',
-      description: 'Discounted plan for students with ID',
-      isActive: true,
-      libraryId: 'library-2',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: 'plan-7',
-      planName: 'Evening Pass',
-      hours: 60,
-      days: 30,
-      months: 1,
-      price: 800.0,
-      planType: 'evening',
-      description: 'Evening access only (5PM to 10PM)',
-      isActive: true,
-      libraryId: 'library-1',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: 'plan-8',
-      planName: 'Flexi Plan',
-      hours: 150,
-      days: 45,
-      months: 1,
-      price: 1800.0,
-      planType: 'flexi',
-      description: 'Flexible hour usage within 45 days',
-      isActive: true,
-      libraryId: 'library-5',
-      createdAt: new Date(),
-      updatedAt: new Date()
+// ⚡ Function to generate all plans
+function generatePlans() {
+  const plans = [];
+  let counter = 1;
+
+  for (const lib of planConfig) {
+    // Monthly plans
+    for (const [hoursPerDay, price] of Object.entries(lib.monthly)) {
+      plans.push({
+        id: `plan-${counter++}`,
+        planName: `Monthly ${hoursPerDay} Hours`,
+        hours: Number(hoursPerDay) * 30, // daily hours * 30 days
+        days: 30,
+        months: 1,
+        price: price,
+        planType: 'monthly',
+        description: `Monthly access with ${hoursPerDay} hours daily`,
+        isActive: true,
+        libraryId: lib.libraryId,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
     }
-  ]
+
+    // Quarterly plans
+    for (const [hoursPerDay, price] of Object.entries(lib.quarterly)) {
+      plans.push({
+        id: `plan-${counter++}`,
+        planName: `Quarterly ${hoursPerDay} Hours`,
+        hours: Number(hoursPerDay) * 90, // daily hours * 90 days
+        days: 90,
+        months: 3,
+        price: price,
+        planType: 'quarterly',
+        description: `Quarterly access with ${hoursPerDay} hours daily`,
+        isActive: true,
+        libraryId: lib.libraryId,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    }
+  }
+
+  return plans;
+}
+
+// 📦 Seed into DB
+await prisma.libraryPlan.createMany({
+  data: generatePlans()
 });
-console.log("✅ Seeded all library plans");
+
+console.log("✅ Seeded plans for all libraries");
 
 
   // TimeSlots
- await prisma.timeSlot.createMany({
+await prisma.timeSlot.createMany({
   data: [
+    // Library 1
     {
       id: 'ts-1',
-      startTime: '10:00',
-      endTime: '12:00',
+      startTime: '08:00',
+      endTime: '14:00', // 6 hours
       date: new Date(),
-      capacity: 10,
-      bookedCount: 2,
+      capacity: 20,
+      bookedCount: 5,
       status: 'AVAILABLE',
       libraryId: 'library-1',
       createdAt: new Date(),
@@ -518,11 +483,11 @@ console.log("✅ Seeded all library plans");
     },
     {
       id: 'ts-2',
-      startTime: '12:00',
-      endTime: '14:00',
+      startTime: '14:00',
+      endTime: '22:00', // 8 hours
       date: new Date(),
-      capacity: 8,
-      bookedCount: 8,
+      capacity: 25,
+      bookedCount: 20,
       status: 'BOOKED',
       libraryId: 'library-1',
       createdAt: new Date(),
@@ -530,104 +495,136 @@ console.log("✅ Seeded all library plans");
     },
     {
       id: 'ts-3',
-      startTime: '15:00',
-      endTime: '17:00',
+      startTime: '08:00',
+      endTime: '20:00', // 12 hours
       date: new Date(),
-      capacity: 6,
-      bookedCount: 0,
+      capacity: 30,
+      bookedCount: 10,
+      status: 'AVAILABLE',
+      libraryId: 'library-1',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+
+    // Library 2
+    {
+      id: 'ts-4',
+      startTime: '07:00',
+      endTime: '13:00', // 6 hours
+      date: new Date(),
+      capacity: 15,
+      bookedCount: 5,
       status: 'AVAILABLE',
       libraryId: 'library-2',
       createdAt: new Date(),
       updatedAt: new Date()
     },
     {
-      id: 'ts-4',
-      startTime: '09:00',
-      endTime: '11:00',
-      date: new Date(),
-      capacity: 12,
-      bookedCount: 4,
-      status: 'AVAILABLE',
-      libraryId: 'library-3',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
       id: 'ts-5',
-      startTime: '11:00',
-      endTime: '13:00',
+      startTime: '13:00',
+      endTime: '21:00', // 8 hours
       date: new Date(),
-      capacity: 10,
-      bookedCount: 10,
+      capacity: 18,
+      bookedCount: 18,
       status: 'BOOKED',
-      libraryId: 'library-3',
+      libraryId: 'library-2',
       createdAt: new Date(),
       updatedAt: new Date()
     },
     {
       id: 'ts-6',
-      startTime: '13:00',
-      endTime: '15:00',
+      startTime: '08:00',
+      endTime: '20:00', // 12 hours
       date: new Date(),
-      capacity: 8,
-      bookedCount: 5,
+      capacity: 28,
+      bookedCount: 12,
       status: 'AVAILABLE',
-      libraryId: 'library-4',
+      libraryId: 'library-2',
       createdAt: new Date(),
       updatedAt: new Date()
     },
+
+    // Library 3
     {
       id: 'ts-7',
-      startTime: '15:00',
-      endTime: '17:00',
+      startTime: '09:00',
+      endTime: '17:00', // 8 hours
       date: new Date(),
-      capacity: 6,
-      bookedCount: 6,
-      status: 'BOOKED',
-      libraryId: 'library-4',
+      capacity: 20,
+      bookedCount: 10,
+      status: 'AVAILABLE',
+      libraryId: 'library-3',
       createdAt: new Date(),
       updatedAt: new Date()
     },
     {
       id: 'ts-8',
       startTime: '17:00',
-      endTime: '19:00',
+      endTime: '23:00', // 6 hours
       date: new Date(),
-      capacity: 5,
-      bookedCount: 1,
-      status: 'AVAILABLE',
-      libraryId: 'library-5',
+      capacity: 15,
+      bookedCount: 15,
+      status: 'BOOKED',
+      libraryId: 'library-3',
       createdAt: new Date(),
       updatedAt: new Date()
     },
+
+    // Library 4
     {
       id: 'ts-9',
-      startTime: '08:00',
-      endTime: '10:00',
+      startTime: '06:00',
+      endTime: '14:00', // 8 hours
       date: new Date(),
-      capacity: 7,
-      bookedCount: 7,
-      status: 'BOOKED',
-      libraryId: 'library-5',
+      capacity: 22,
+      bookedCount: 8,
+      status: 'AVAILABLE',
+      libraryId: 'library-4',
       createdAt: new Date(),
       updatedAt: new Date()
     },
     {
       id: 'ts-10',
-      startTime: '18:00',
-      endTime: '20:00',
+      startTime: '14:00',
+      endTime: '20:00', // 6 hours
       date: new Date(),
-      capacity: 10,
-      bookedCount: 3,
+      capacity: 18,
+      bookedCount: 18,
+      status: 'BOOKED',
+      libraryId: 'library-4',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+
+    // Library 5
+    {
+      id: 'ts-11',
+      startTime: '08:00',
+      endTime: '20:00', // 12 hours
+      date: new Date(),
+      capacity: 25,
+      bookedCount: 15,
       status: 'AVAILABLE',
-      libraryId: 'library-2',
+      libraryId: 'library-5',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'ts-12',
+      startTime: '20:00',
+      endTime: '02:00', // 6 hours overnight
+      date: new Date(),
+      capacity: 12,
+      bookedCount: 12,
+      status: 'BOOKED',
+      libraryId: 'library-5',
       createdAt: new Date(),
       updatedAt: new Date()
     }
   ]
 });
 
-console.log("✅ Seeded time slots");
+console.log("✅ Seeded custom time slots for all libraries");
 
   // Bookings
   await prisma.booking.createMany({ data: [
