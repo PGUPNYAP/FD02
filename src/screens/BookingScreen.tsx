@@ -26,7 +26,7 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
   const { getItem, setItem } = useStorage();
   const RAZORPAY_KEY = 'rzp_test_WOnh0XISrlnHjs';
   const currentUser = getItem(STORAGE_KEYS.CURRENT_USER);
-
+  console.log("Current user in BookingScreen: ", currentUser);
   // Mock data for time slots and seats (since backend doesn't provide these endpoints)
   const mockTimeSlots: TimeSlot[] = [
     {

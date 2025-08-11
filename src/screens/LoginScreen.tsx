@@ -94,7 +94,7 @@ const LoginScreen: React.FC = () => {
 
           // Store user data in AsyncStorage
           await setItem(STORAGE_KEYS.CURRENT_USER, userData);
-          console.log('User data stored in AsyncStorage:', userData);
+          console.log('User data stored in AsyncStorage:', STORAGE_KEYS.CURRENT_USER);
 
           // Show success message and navigate
           Alert.alert(

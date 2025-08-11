@@ -33,7 +33,7 @@ interface UserData {
 }
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
-  const [selectedLocation, setSelectedLocation] = useState<string>('Gurgaon');
+  const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserData | null>(null);
@@ -172,7 +172,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
       <SafeAreaView className="flex-1 bg-gray-50">
         {/* Header with Location and Profile */}
-        <View className="flex-row justify-between items-center px-4 pt-2 pb-4 bg-gray-50">
+        <View className="flex-row justify-between items-center px-4 pt-8 pb-4 bg-gray-50">
           <LocationButton
             selectedLocation={selectedLocation}
             onPress={() => setShowLocationPicker(true)}
