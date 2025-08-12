@@ -333,3 +333,62 @@ export const deleteTimeSlot = async (req: Request, res: Response) => {
     });
   }
 };
+
+
+export const getTimeSlotsByLibraryId = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const timeSlots = await prisma.timeSlot.findMany({
+      where: { id },
+      include: {
+        library: {
+          select: {
+            id: true,
+            libraryName: true,
+            address: true,
+            city: true
+          }
+        },
+        bookings: {
+          select: {
+            id: true,
+            student: {
+              select: { firstName: true, lastName: true }
+            }
+          }
+        }
+      },
+      orderBy: {
+        startTime: 'asc'  // Optional: order by start time
+      }
+    });
+
+    if (!timeSlots || timeSlots.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No time slots found for this library'
+      });
+    }
+
+    const slotsWithAvailability = timeSlots.map(timeSlot => ({
+      ...timeSlot,
+      availableSpots: timeSlot.capacity - timeSlot.bookedCount,
+      isBookable: (timeSlot.capacity - timeSlot.bookedCount) > 0
+    }));
+
+    return res.json({
+      success: true,
+      data: slotsWithAvailability,
+      message: 'Time slots retrieved successfully',
+      count: slotsWithAvailability.length
+    });
+
+  } catch (error) {
+    console.error('Error in getTimeSlotsByLibraryId:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};

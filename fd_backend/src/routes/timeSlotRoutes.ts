@@ -4,7 +4,8 @@ import {
   getTimeSlotById,
   createTimeSlot,
   updateTimeSlot,
-  deleteTimeSlot
+  deleteTimeSlot,
+  getTimeSlotsByLibraryId
 } from '../controllers/timeSlotController';
 
 const router = Router();
@@ -23,5 +24,9 @@ router.put('/:id', updateTimeSlot);
 
 // DELETE /timeslots/:id → delete time slot (librarian only)
 router.delete('/:id', deleteTimeSlot);
+
+
+//get all the timeslot of a specific library
+router.get('/libraryId/:id',getTimeSlotsByLibraryId)
 
 export default router;

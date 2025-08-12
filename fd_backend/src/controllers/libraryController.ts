@@ -235,4 +235,213 @@ export const onboardLibrarian = async (req: Request, res: Response) => {
   }
 };
 
+export const getSeatsByLibraryId = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params; // Library ID from URL parameters
+
+    // First verify if library exists
+    const library = await prisma.library.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        libraryName: true,
+        address: true,
+        city: true,
+        state: true,
+        totalSeats: true,
+        isActive: true,
+        librarian: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    if (!library) {
+      return res.status(404).json({
+        success: false,
+        message: 'Library not found'
+      });
+    }
+
+    if (!library.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Library is not active'
+      });
+    }
+
+    // Get all seats for the library with related data
+    const seats = await prisma.seat.findMany({
+      where: { 
+        libraryId: id 
+      },
+      include: {
+        library: {
+          select: {
+            id: true,
+            libraryName: true,
+            address: true,
+            city: true,
+            state: true
+          }
+        },
+        bookings: {
+          select: {
+            id: true,
+            status: true,
+            checkInTime: true,
+            checkOutTime: true,
+            validFrom: true,
+            validTo: true,
+            totalAmount: true,
+            student: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true
+              }
+            },
+            plan: {
+              select: {
+                id: true,
+                planName: true,
+                hours: true,
+                days: true,
+                months: true,
+                price: true
+              }
+            }
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        }
+      },
+      orderBy: {
+        seatNumber: 'asc'
+      }
+    });
+
+    if (!seats || seats.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No seats found for this library'
+      });
+    }
+
+    // Add computed fields for better seat information
+    const seatsWithDetails = seats.map(seat => {
+      const currentTime = new Date();
+      
+      // Get current active booking (if any)
+      const activeBooking = seat.bookings.find(booking => 
+        booking.status === 'ACTIVE' &&
+        new Date(booking.validFrom) <= currentTime &&
+        new Date(booking.validTo) >= currentTime
+      );
+
+      // Get upcoming bookings
+      const upcomingBookings = seat.bookings.filter(booking => 
+        booking.status === 'ACTIVE' &&
+        new Date(booking.validFrom) > currentTime
+      );
+
+      // Determine current availability
+      let currentAvailability: 'AVAILABLE' | 'OCCUPIED' | 'RESERVED' | 'MAINTENANCE';
+      
+      if (seat.status === 'MAINTENANCE') {
+        currentAvailability = 'MAINTENANCE';
+      } else if (seat.status === 'OCCUPIED' || activeBooking) {
+        currentAvailability = 'OCCUPIED';
+      } else if (seat.status === 'RESERVED' || upcomingBookings.length > 0) {
+        currentAvailability = 'RESERVED';
+      } else {
+        currentAvailability = 'AVAILABLE';
+      }
+
+      return {
+        id: seat.id,
+        seatNumber: seat.seatNumber,
+        status: seat.status,
+        isActive: seat.isActive,
+        libraryId: seat.libraryId,
+        createdAt: seat.createdAt,
+        updatedAt: seat.updatedAt,
+        library: seat.library,
+        
+        // Computed availability information
+        currentAvailability,
+        isCurrentlyOccupied: !!activeBooking,
+        currentBooking: activeBooking || null,
+        upcomingBookingsCount: upcomingBookings.length,
+        nextBooking: upcomingBookings[0] || null,
+        totalBookings: seat.bookings.length,
+        
+        // All bookings for this seat
+        bookings: seat.bookings
+      };
+    });
+
+    // Create summary statistics
+    const summary = {
+      totalSeats: seats.length,
+      activeSeats: seats.filter(seat => seat.isActive).length,
+      inactiveSeats: seats.filter(seat => !seat.isActive).length,
+      
+      // Availability breakdown
+      availableSeats: seatsWithDetails.filter(seat => seat.currentAvailability === 'AVAILABLE').length,
+      occupiedSeats: seatsWithDetails.filter(seat => seat.currentAvailability === 'OCCUPIED').length,
+      reservedSeats: seatsWithDetails.filter(seat => seat.currentAvailability === 'RESERVED').length,
+      maintenanceSeats: seatsWithDetails.filter(seat => seat.currentAvailability === 'MAINTENANCE').length,
+      
+      // Seat number range
+      seatNumberRange: seats.length > 0 ? {
+        min: Math.min(...seats.map(seat => seat.seatNumber)),
+        max: Math.max(...seats.map(seat => seat.seatNumber))
+      } : null,
+      
+      // Total bookings across all seats
+      totalBookings: seats.reduce((sum, seat) => sum + seat.bookings.length, 0)
+    };
+
+    // Group seats by different criteria for easier frontend consumption
+    const groupedData = {
+      byStatus: seatsWithDetails.reduce((acc, seat) => {
+        const status = seat.currentAvailability;
+        if (!acc[status]) acc[status] = [];
+        acc[status].push(seat);
+        return acc;
+      }, {} as Record<string, typeof seatsWithDetails>),
+      
+      byActivity: {
+        active: seatsWithDetails.filter(seat => seat.isActive),
+        inactive: seatsWithDetails.filter(seat => !seat.isActive)
+      }
+    };
+
+    return res.json({
+      success: true,
+      data: {
+        library,
+        seats: seatsWithDetails,
+        summary,
+        groupedData
+      },
+      message: 'Seats retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('Error in getSeatsByLibraryId:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
 
