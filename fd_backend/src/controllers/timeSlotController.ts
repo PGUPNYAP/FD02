@@ -338,9 +338,11 @@ export const deleteTimeSlot = async (req: Request, res: Response) => {
 export const getTimeSlotsByLibraryId = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-
+    console.log("Id -> ",id);
     const timeSlots = await prisma.timeSlot.findMany({
-      where: { id },
+      where: {
+        libraryId: id 
+      },
       include: {
         library: {
           select: {
@@ -363,7 +365,7 @@ export const getTimeSlotsByLibraryId = async (req: Request, res: Response) => {
         startTime: 'asc'  // Optional: order by start time
       }
     });
-
+    console.log("time-slot", timeSlots);
     if (!timeSlots || timeSlots.length === 0) {
       return res.status(404).json({
         success: false,
