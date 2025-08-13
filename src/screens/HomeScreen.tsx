@@ -203,7 +203,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                 placeholder="Search libraries..."
                 value={searchQuery}
                 onChangeText={setSearchQuery}
-                  {new Date(currentSubscription.date).toLocaleDateString()}
                 placeholderTextColor="#9ca3af"
               />
             </View>
