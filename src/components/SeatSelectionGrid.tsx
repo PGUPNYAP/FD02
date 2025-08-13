@@ -20,6 +20,7 @@ interface Seat {
   id: string;
   seatNumber: number;
   status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED';
+  currentAvailability: 'AVAILABLE' | 'OCCUPIED' | 'RESERVED' | 'MAINTENANCE';
 }
 
 interface SeatSelectionGridProps {
@@ -37,38 +38,24 @@ export default function SeatSelectionGrid({
 }: SeatSelectionGridProps) {
   const [selectedSeat, setSelectedSeat] = useState<string | null>(selectedSeatId || null);
 
-  // Prepare query parameters for seat availability
-  const queryParams = {
-    libraryId,
-    ...(selectedTimeSlot && {
-      date: selectedTimeSlot.date,
-      startTime: selectedTimeSlot.startTime,
-      endTime: selectedTimeSlot.endTime,
-    }),
-  };
   const { 
     data: seats, 
     isLoading, 
     error, 
     refetch 
   } = useQuery({
-    queryKey: ['seats', libraryId, selectedTimeSlot?.id],
-    queryFn: () => seatApi.getAvailableSeats(
-      queryParams.libraryId,
-      queryParams.date,
-      queryParams.startTime,
-      queryParams.endTime
-    ),
-    enabled: !!libraryId && !!selectedTimeSlot,
+    queryKey: ['seats', libraryId],
+    queryFn: () => seatApi.getSeatsByLibraryId(libraryId),
+    enabled: !!libraryId,
     staleTime: 30000, // 30 seconds
     refetchInterval: 60000, // Refetch every minute to get updated seat status
   });
 
   const handleSeatPress = (seat: Seat) => {
-    if (seat.status !== 'AVAILABLE') {
+    if (seat.currentAvailability !== 'AVAILABLE') {
       Alert.alert(
         'Seat Unavailable', 
-        `This seat is currently ${seat.status.toLowerCase()}. Please select another seat.`
+        `This seat is currently ${seat.currentAvailability.toLowerCase()}. Please select another seat.`
       );
       return;
     }
@@ -84,7 +71,7 @@ export default function SeatSelectionGrid({
   const getSeatStyle = (seat: Seat) => {
     const baseStyle = "items-center justify-center rounded-lg border-2 m-1";
     
-    if (seat.status === 'AVAILABLE') {
+    if (seat.currentAvailability === 'AVAILABLE') {
       return selectedSeat === seat.id 
         ? `${baseStyle} bg-blue-600 border-blue-700`
         : `${baseStyle} bg-green-100 border-green-300`;
@@ -94,7 +81,7 @@ export default function SeatSelectionGrid({
   };
 
   const getSeatTextStyle = (seat: Seat) => {
-    if (seat.status === 'AVAILABLE') {
+    if (seat.currentAvailability === 'AVAILABLE') {
       return selectedSeat === seat.id 
         ? "text-white font-bold"
         : "text-green-800 font-semibold";
@@ -107,15 +94,15 @@ export default function SeatSelectionGrid({
     <Pressable
       key={seat.id}
       onPress={() => handleSeatPress(seat)}
-      disabled={seat.status !== 'AVAILABLE'}
+      disabled={seat.currentAvailability !== 'AVAILABLE'}
       className={getSeatStyle(seat)}
       style={{ 
         width: SEAT_SIZE - 8, 
         height: SEAT_SIZE - 8,
-        opacity: seat.status === 'AVAILABLE' ? 1 : 0.6 
+        opacity: seat.currentAvailability === 'AVAILABLE' ? 1 : 0.6 
       }}
       android_ripple={{ 
-        color: seat.status === 'AVAILABLE' ? '#3b82f6' : '#9ca3af' 
+        color: seat.currentAvailability === 'AVAILABLE' ? '#3b82f6' : '#9ca3af' 
       }}
     >
       <Text className={getSeatTextStyle(seat)} style={{ fontSize: 12 }}>
@@ -178,14 +165,6 @@ export default function SeatSelectionGrid({
         Select Your Seat
       </Text>
       
-      {!selectedTimeSlot && (
-        <View className="bg-yellow-50 p-3 rounded-lg mb-4">
-          <Text className="text-yellow-800 text-center text-sm">
-            Please select a time slot first to view available seats
-          </Text>
-        </View>
-      )}
-      
       {/* Legend */}
       <View className="flex-row justify-center mb-4 space-x-4">
         <View className="flex-row items-center">
@@ -203,11 +182,7 @@ export default function SeatSelectionGrid({
       </View>
 
       {/* Seat Grid */}
-      {selectedTimeSlot ? renderSeatGrid() : (
-        <View className="items-center py-8">
-          <Text className="text-gray-500">Select a time slot to view seats</Text>
-        </View>
-      )}
+      {renderSeatGrid()}
 
       {/* Selected Seat Info */}
       {selectedSeat && (

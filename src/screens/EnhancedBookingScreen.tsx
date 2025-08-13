@@ -9,9 +9,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { ArrowLeftIcon, CheckIcon } from 'react-native-heroicons/outline';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { Library, LibraryPlan, TimeSlot } from '../types/api';
-import { bookingApi, studentApi } from '../services/api';
+import { bookingApi, studentApi, timeSlotApi } from '../services/api';
 import { useStorage, STORAGE_KEYS } from '../hooks/useStorage';
 import { BookingScreenProps } from '../types/navigation';
 import SeatSelectionGrid from '../components/SeatSelectionGrid';
@@ -25,53 +25,44 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
   const { getItem } = useStorage();
   const queryClient = useQueryClient();
 
-  const currentUser = getItem(STORAGE_KEYS.CURRENT_USER);
+  // Load current user from storage
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
 
-  // Mock time slots (you can replace this with actual API call)
-  const mockTimeSlots: TimeSlot[] = [
-    {
-      id: 'ts-1',
-      startTime: '09:00',
-      endTime: '12:00',
-      date: new Date().toISOString(),
-      capacity: 10,
-      bookedCount: 3,
-      status: 'AVAILABLE',
-    },
-    {
-      id: 'ts-2',
-      startTime: '12:00',
-      endTime: '15:00',
-      date: new Date().toISOString(),
-      capacity: 10,
-      bookedCount: 7,
-      status: 'AVAILABLE',
-    },
-    {
-      id: 'ts-3',
-      startTime: '15:00',
-      endTime: '18:00',
-      date: new Date().toISOString(),
-      capacity: 10,
-      bookedCount: 2,
-      status: 'AVAILABLE',
-    },
-    {
-      id: 'ts-4',
-      startTime: '18:00',
-      endTime: '21:00',
-      date: new Date().toISOString(),
-      capacity: 10,
-      bookedCount: 10,
-      status: 'BOOKED',
-    },
-  ];
+  // Load user data on component mount
+  React.useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const userData = await getItem(STORAGE_KEYS.CURRENT_USER);
+        setCurrentUser(userData);
+        console.log('📱 Current user loaded in booking screen:', userData);
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      } finally {
+        setIsLoadingUser(false);
+      }
+    };
+    loadUserData();
+  }, []);
+
+  // Fetch real timeslots from backend
+  const { 
+    data: timeSlots, 
+    isLoading: isLoadingTimeSlots, 
+    error: timeSlotsError 
+  } = useQuery({
+    queryKey: ['timeslots', library.id],
+    queryFn: () => timeSlotApi.getTimeSlotsByLibraryId(library.id),
+    enabled: !!library.id,
+    staleTime: 30000, // 30 seconds
+  });
 
   const bookingMutation = useMutation({
     mutationFn: bookingApi.createBooking,
     onSuccess: (data) => {
       // Invalidate and refetch seat data
       queryClient.invalidateQueries({ queryKey: ['seats', library.id] });
+      queryClient.invalidateQueries({ queryKey: ['timeslots', library.id] });
       
       Alert.alert(
         'Booking Confirmed!',
@@ -111,6 +102,11 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
   };
 
   const handleBookNowPress = () => {
+    if (isLoadingUser) {
+      Alert.alert('Loading', 'Please wait while we verify your login status.');
+      return;
+    }
+
     if (!currentUser) {
       Alert.alert('Login Required', 'Please login to book a seat.', [
         { text: 'Login', onPress: () => navigation.navigate('Login') },
@@ -210,16 +206,37 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
       <Text className="text-lg font-semibold text-gray-800 mb-3">
         Select Time Slot
       </Text>
+      
+      {isLoadingTimeSlots ? (
+        <View className="items-center py-8">
+          <ActivityIndicator size="large" color="#3b82f6" />
+          <Text className="mt-2 text-gray-600">Loading time slots...</Text>
+        </View>
+      ) : timeSlotsError ? (
+        <View className="items-center py-8">
+          <Text className="text-red-500 mb-4">Failed to load time slots</Text>
+          <Pressable
+            onPress={() => queryClient.invalidateQueries({ queryKey: ['timeslots', library.id] })}
+            className="bg-blue-600 px-4 py-2 rounded-lg"
+          >
+            <Text className="text-white font-medium">Retry</Text>
+          </Pressable>
+        </View>
+      ) : !timeSlots || timeSlots.length === 0 ? (
+        <View className="items-center py-8">
+          <Text className="text-gray-600">No time slots available</Text>
+        </View>
+      ) : (
       <View className="flex-row flex-wrap">
-        {mockTimeSlots.map((slot) => (
+        {timeSlots.map((slot) => (
           <Pressable
             key={slot.id}
-            onPress={() => slot.status === 'AVAILABLE' && setSelectedTimeSlot(slot)}
-            disabled={slot.status !== 'AVAILABLE'}
+            onPress={() => slot.isBookable && setSelectedTimeSlot(slot)}
+            disabled={!slot.isBookable}
             className={`p-3 rounded-lg border-2 mr-3 mb-3 min-w-24 ${
               selectedTimeSlot?.id === slot.id
                 ? 'border-blue-600 bg-blue-50'
-                : slot.status === 'AVAILABLE'
+                : slot.isBookable
                 ? 'border-gray-200 bg-white'
                 : 'border-gray-200 bg-gray-100'
             }`}
@@ -227,13 +244,13 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
           >
             <Text
               className={`text-center font-medium ${
-                slot.status === 'AVAILABLE' ? 'text-gray-800' : 'text-gray-400'
+                slot.isBookable ? 'text-gray-800' : 'text-gray-400'
               }`}
             >
               {slot.startTime} - {slot.endTime}
             </Text>
             <Text className="text-xs text-center text-gray-500 mt-1">
-              {slot.capacity - slot.bookedCount} available
+              {slot.availableSpots} available
             </Text>
             {selectedTimeSlot?.id === slot.id && (
               <View className="absolute -top-1 -right-1">
@@ -243,6 +260,7 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
           </Pressable>
         ))}
       </View>
+      )}
     </View>
   );
 
@@ -327,15 +345,15 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
       <View className="p-4 border-t border-gray-200">
         <Pressable
           onPress={handleBookNowPress}
-          disabled={!selectedPlan || !selectedTimeSlot || !selectedSeatId || bookingMutation.isPending || verifyStudentMutation.isPending}
+          disabled={!selectedPlan || !selectedTimeSlot || !selectedSeatId || bookingMutation.isPending || verifyStudentMutation.isPending || isLoadingUser}
           className={`py-4 rounded-lg ${
-            selectedPlan && selectedTimeSlot && selectedSeatId && !bookingMutation.isPending && !verifyStudentMutation.isPending
+            selectedPlan && selectedTimeSlot && selectedSeatId && !bookingMutation.isPending && !verifyStudentMutation.isPending && !isLoadingUser
               ? 'bg-blue-600'
               : 'bg-gray-300'
           }`}
           android_ripple={{ color: '#2563eb' }}
         >
-          {(bookingMutation.isPending || verifyStudentMutation.isPending) ? (
+          {(bookingMutation.isPending || verifyStudentMutation.isPending || isLoadingUser) ? (
             <ActivityIndicator color="white" />
           ) : (
             <Text className="text-white text-center font-semibold text-lg">

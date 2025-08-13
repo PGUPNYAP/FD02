@@ -6,6 +6,7 @@ export const useStorage = () => {
     try {
       const jsonValue = JSON.stringify(value);
       await AsyncStorage.setItem(key, jsonValue);
+      console.log(`💾 Stored ${key}:`, value);
     } catch (error) {
       console.error('Error saving to storage:', error);
     }
@@ -14,7 +15,9 @@ export const useStorage = () => {
   const getItem = async <T>(key: string): Promise<T | null> => {
     try {
       const jsonValue = await AsyncStorage.getItem(key);
-      return jsonValue ? JSON.parse(jsonValue) : null;
+      const result = jsonValue ? JSON.parse(jsonValue) : null;
+      console.log(`📱 Retrieved ${key}:`, result);
+      return result;
     } catch (error) {
       console.error('Error reading from storage:', error);
       return null;
@@ -24,6 +27,7 @@ export const useStorage = () => {
   const removeItem = async (key: string): Promise<void> => {
     try {
       await AsyncStorage.removeItem(key);
+      console.log(`🗑️ Removed ${key} from storage`);
     } catch (error) {
       console.error('Error removing from storage:', error);
     }
@@ -32,6 +36,7 @@ export const useStorage = () => {
   const clear = async (): Promise<void> => {
     try {
       await AsyncStorage.clear();
+      console.log('🧹 Cleared all storage');
     } catch (error) {
       console.error('Error clearing storage:', error);
     }

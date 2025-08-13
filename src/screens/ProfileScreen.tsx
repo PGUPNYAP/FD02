@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   Pressable,
   Image,
+  Alert,
 } from 'react-native';
 import {
   UserIcon,
@@ -16,16 +17,34 @@ import {
   Cog6ToothIcon,
   ArrowLeftIcon,
 } from 'react-native-heroicons/outline';
+import { signOut } from 'aws-amplify/auth';
 import { RootStackScreenProps } from '../types/navigation';
 import { useStorage, STORAGE_KEYS } from '../hooks/useStorage';
 
 
 export default function ProfileScreen({ navigation }: RootStackScreenProps<'Profile'>) {
   const { getItem, removeItem } = useStorage();
+  const [currentUser, setCurrentUser] = React.useState<any>(null);
+  const [bookingHistory, setBookingHistory] = React.useState<any[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
   
-  // Get current user from storage
-  const currentUser = getItem(STORAGE_KEYS.CURRENT_USER);
-  const bookingHistory = getItem(STORAGE_KEYS.BOOKING_HISTORY) || [];
+  // Load user data and booking history on mount
+  React.useEffect(() => {
+    const loadData = async () => {
+      try {
+        const userData = await getItem(STORAGE_KEYS.CURRENT_USER);
+        const history = await getItem(STORAGE_KEYS.BOOKING_HISTORY) || [];
+        setCurrentUser(userData);
+        setBookingHistory(history);
+        console.log('📱 Profile data loaded:', { userData, history });
+      } catch (error) {
+        console.error('Error loading profile data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   if (!currentUser) {
     // If no user is logged in, redirect to login
@@ -36,18 +55,43 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
   }
 
   const user = {
-    name: currentUser.name,
+    name: currentUser.firstName || currentUser.name || 'User',
     email: currentUser.email,
-    phone: '+91 XXXXXXXXXX', // You can add phone to user data later
+    phone: currentUser.phoneNumber || '+91 XXXXXXXXXX',
     profileImage: null,
   };
 
   // Get current active subscription from booking history
   const currentSubscription = bookingHistory.find((booking: any) => booking.status === 'Active');
 
-  const handleLogout = () => {
-    removeItem(STORAGE_KEYS.CURRENT_USER);
-    navigation.replace('Login');
+  const handleLogout = async () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Sign out from AWS Cognito
+              await signOut();
+              // Clear local storage
+              await removeItem(STORAGE_KEYS.CURRENT_USER);
+              await removeItem(STORAGE_KEYS.BOOKING_HISTORY);
+              console.log('✅ User logged out successfully');
+              navigation.replace('Login');
+            } catch (error) {
+              console.error('Logout error:', error);
+              // Still clear local storage and navigate even if Cognito signout fails
+              await removeItem(STORAGE_KEYS.CURRENT_USER);
+              navigation.replace('Login');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const menuItems = [
@@ -160,7 +204,7 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
         Booking History
       </Text>
       {bookingHistory.length > 0 ? (
-        bookingHistory.map((booking) => (
+        bookingHistory.map((booking: any) => (
           <View
             key={booking.id}
             className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-3"
@@ -174,7 +218,7 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
                   {booking.planName}
                 </Text>
                 <Text className="text-xs text-gray-500">
-                  {booking.date}
+                  {new Date(booking.date).toLocaleDateString()}
                 </Text>
               </View>
               <View className="items-end">
@@ -206,6 +250,17 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
       )}
     </View>
   );
+
+  if (isLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-gray-50">
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#3b82f6" />
+          <Text className="mt-2 text-gray-600">Loading profile...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const renderMenuItem = (item: any, index: number) => (
     <Pressable

@@ -25,38 +25,26 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
   const [isBooking, setIsBooking] = useState(false);
   const { getItem, setItem } = useStorage();
   const RAZORPAY_KEY = 'rzp_test_WOnh0XISrlnHjs';
-  const currentUser = getItem(STORAGE_KEYS.CURRENT_USER);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+
+  // Load current user from storage
+  React.useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const userData = await getItem(STORAGE_KEYS.CURRENT_USER);
+        setCurrentUser(userData);
+        console.log('📱 Current user loaded in booking screen:', userData);
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      } finally {
+        setIsLoadingUser(false);
+      }
+    };
+    loadUserData();
+  }, []);
+
   console.log("Current user in BookingScreen: ", currentUser);
-  // Mock data for time slots and seats (since backend doesn't provide these endpoints)
-  const mockTimeSlots: TimeSlot[] = [
-    {
-      id: 'ts-1',
-      startTime: '09:00',
-      endTime: '12:00',
-      date: new Date().toISOString(),
-      capacity: 10,
-      bookedCount: 3,
-      status: 'AVAILABLE',
-    },
-    {
-      id: 'ts-2',
-      startTime: '12:00',
-      endTime: '15:00',
-      date: new Date().toISOString(),
-      capacity: 10,
-      bookedCount: 7,
-      status: 'AVAILABLE',
-    },
-    {
-      id: 'ts-3',
-      startTime: '15:00',
-      endTime: '18:00',
-      date: new Date().toISOString(),
-      capacity: 10,
-      bookedCount: 10,
-      status: 'BOOKED',
-    },
-  ];
   type RazorpayOrderResponse = {
     orderId: string;
     amount: number;
@@ -183,6 +171,11 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
   //   handleBookingSubmit();
   // };
   const handleBookNowPress = (): void => {
+    if (isLoadingUser) {
+      Alert.alert('Loading', 'Please wait while we verify your login status.');
+      return;
+    }
+
     if (!currentUser) {
       Alert.alert('Login Required', 'Please login to book a seat.', [
         { text: 'Login', onPress: () => navigation.navigate('Login') },
@@ -301,7 +294,8 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
         Select Time Slot
       </Text>
       <View className="flex-row flex-wrap">
-        {mockTimeSlots.map((slot) => (
+        {/* Note: This screen still uses mock data. Use EnhancedBookingScreen for real API integration */}
+        {[].map((slot: any) => (
           <Pressable
             key={slot.id}
             onPress={() => slot.status === 'AVAILABLE' && setSelectedTimeSlot(slot)}
@@ -330,6 +324,11 @@ export default function BookingScreen({ navigation, route }: BookingScreenProps)
             )}
           </Pressable>
         ))}
+      </View>
+      <View className="bg-yellow-50 p-3 rounded-lg">
+        <Text className="text-yellow-800 text-center text-sm">
+          This screen uses mock data. Please use the enhanced booking flow for real-time data.
+        </Text>
       </View>
     </View>
   );

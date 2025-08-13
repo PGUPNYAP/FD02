@@ -7,6 +7,10 @@ export const API_ROUTES = {
   getLocations: `${BASE_URL}/library/getLocations`,
   getLibraries: (city: string) => `${BASE_URL}/library?city=${city}&page=1&limit=5`,
   getLibraryById: (id: string) => `${BASE_URL}/library/${id}`,
+  getSeatsByLibraryId: (id: string) => `${BASE_URL}/library/libraries/${id}`,
+  
+  // TimeSlot routes
+  getTimeSlotsByLibraryId: (id: string) => `${BASE_URL}/timeslots/libraryId/${id}`,
   
   // Booking routes
   createBooking: `${BASE_URL}/bookings`,

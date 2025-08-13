@@ -38,8 +38,9 @@ export interface Review {
 
 export interface Seat {
   id: string;
-  seatNumber: string;
+  seatNumber: number;
   status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED';
+  currentAvailability: 'AVAILABLE' | 'OCCUPIED' | 'RESERVED' | 'MAINTENANCE';
   isActive: boolean;
 }
 
@@ -51,6 +52,8 @@ export interface TimeSlot {
   capacity: number;
   bookedCount: number;
   status: 'AVAILABLE' | 'BOOKED' | 'BLOCKED';
+  availableSpots: number;
+  isBookable: boolean;
 }
 
 export interface FAQ {

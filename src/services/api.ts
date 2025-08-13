@@ -222,55 +222,47 @@ export const studentApi = {
 
 // Seat API
 export const seatApi = {
-  getAvailableSeats: async (
-    libraryId: string, 
-    date?: string, 
-    startTime?: string, 
-    endTime?: string
-  ): Promise<Array<{
+  // Get seats by library ID
+  getSeatsByLibraryId: async (libraryId: string): Promise<Array<{
     id: string;
     seatNumber: number;
     status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED';
+    currentAvailability: 'AVAILABLE' | 'OCCUPIED' | 'RESERVED' | 'MAINTENANCE';
   }>> => {
     try {
-      console.log('🪑 Fetching available seats for library:', libraryId, { date, startTime, endTime });
-      
-      // Build query parameters for seat availability check
-      const params = new URLSearchParams();
-      params.append('libraryId', libraryId);
-      if (date) params.append('date', date);
-      if (startTime) params.append('startTime', startTime);
-      if (endTime) params.append('endTime', endTime);
-      
-      const response = await api.get(`/bookings/available?${params.toString()}`);
-      console.log('✅ Available seats fetched:', response.data);
-      
-      // Transform backend response to match frontend expectations
-      return response.data.data || [];
+      console.log('🪑 Fetching seats for library:', libraryId);
+      const response = await api.get(`/library/libraries/${libraryId}`);
+      console.log('✅ Seats fetched:', response.data);
+      return response.data.data.seats || [];
     } catch (error: any) {
       console.error('❌ Failed to fetch seats:', error);
-      
-      // Fallback to mock data if backend endpoint doesn't exist yet
-      console.log('⚠️ Using fallback mock data for seats');
-      try {
-        const library = await libraryApi.getLibraryById(libraryId);
-        const totalSeats = library.totalSeats || 30;
-        
-        const seats = [];
-        for (let i = 1; i <= totalSeats; i++) {
-          // Randomly assign some seats as occupied for demo
-          const isOccupied = Math.random() < 0.3; // 30% chance of being occupied
-          seats.push({
-            id: `seat-${i}`,
-            seatNumber: i,
-            status: isOccupied ? 'OCCUPIED' : 'AVAILABLE' as const,
-          });
-        }
-        
-       return seats;
-      } catch (fallbackError) {
-        throw new Error('Failed to load seats');
-      }
+      throw new Error('Failed to load seats');
+    }
+  },
+};
+
+// TimeSlot API
+export const timeSlotApi = {
+  // Get timeslots by library ID
+  getTimeSlotsByLibraryId: async (libraryId: string): Promise<Array<{
+    id: string;
+    startTime: string;
+    endTime: string;
+    date: string;
+    capacity: number;
+    bookedCount: number;
+    status: 'AVAILABLE' | 'BOOKED' | 'BLOCKED';
+    availableSpots: number;
+    isBookable: boolean;
+  }>> => {
+    try {
+      console.log('⏰ Fetching timeslots for library:', libraryId);
+      const response = await api.get(`/timeslots/libraryId/${libraryId}`);
+      console.log('✅ Timeslots fetched:', response.data);
+      return response.data.data || [];
+    } catch (error: any) {
+      console.error('❌ Failed to fetch timeslots:', error);
+      throw new Error('Failed to load timeslots');
     }
   },
 };
