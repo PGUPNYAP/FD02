@@ -44,3 +44,4 @@ export type BookingScreenProps = RootStackScreenProps<'Booking'>;
 export type HomeScreenProps = TabScreenProps<'Home'>;
 export type ResourcesScreenProps = TabScreenProps<'Resources'>;
 export type MentorshipScreenProps = TabScreenProps<'Mentorship'>;
+export type SplashScreenProps = RootStackScreenProps<'Splash'>;

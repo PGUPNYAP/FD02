@@ -15,19 +15,16 @@ import ProfileScreen from '../screens/ProfileScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 
 
-interface NavigationProps {
-  initialRoute: 'Login' | 'Home';
-}
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export default function Navigation({ initialRoute }: NavigationProps) {
+export default function Navigation() {
   return (
     <NavigationContainer ref={navigationRef}>
-      <Stack.Navigator initialRouteName={initialRoute}
-      //{initialRoute}
-       // === 'Login' ? 'Login' : 'Splash'
-         screenOptions={{ headerShown: false }}>
+      <Stack.Navigator 
+        initialRouteName="Splash"
+        screenOptions={{ headerShown: false }}
+      >
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Signup" component={SignupScreen} />
