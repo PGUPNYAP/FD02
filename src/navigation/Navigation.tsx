@@ -7,7 +7,6 @@ import TabNavigator from './TabNavigator';
 import LibraryDetailsScreen from '../screens/LibraryDetailsScreen';
 import EnhancedBookingScreen from '../screens/EnhancedBookingScreen';
 import LoginScreen from '../screens/LoginScreen';
-import AuthScreen from '../screens/AuthScreen';
 import SignupScreen from '../screens/SignupScreen';
 import { navigationRef } from '../utils/NavigationUtil';
 import { RootStackParamList } from '../types/navigation';
@@ -28,7 +27,7 @@ export default function Navigation() {
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Signup" component={SignupScreen} />
-        <Stack.Screen name="Home" component={TabNavigator} />
+        <Stack.Screen name="Main" component={TabNavigator} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="LibraryDetails" component={LibraryDetailsScreen} />
         <Stack.Screen name="Booking" component={EnhancedBookingScreen} />

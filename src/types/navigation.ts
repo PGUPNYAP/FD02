@@ -8,7 +8,7 @@ export type RootStackParamList = {
   Splash: undefined;
   Login: undefined;
   Signup: undefined;
-  Home: undefined;
+  Main: undefined;
   Profile: undefined;
   LibraryDetails: {
     libraryId: string;

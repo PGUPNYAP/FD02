@@ -41,7 +41,7 @@ export default function SplashScreen({ navigation }: SplashScreenProps) {
       if (accessToken && userData) {
         // User is authenticated and has local data
         console.log('✅ User authenticated, navigating to Home');
-        replace('Home');
+        replace('Main');
       } else {
         // User is not authenticated or missing data
         console.log('❌ User not authenticated, navigating to Login');
