@@ -71,6 +71,7 @@ const SignupScreen: React.FC = () => {
   const [otpLoading, setOtpLoading] = useState<boolean>(false);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { setItem } = useStorage();
+  const [cognitoId, setCognitoId] = useState<string>('');
 
   const validatePhoneNumber = (phone: string): boolean => {
     // Indian phone number validation - exactly 10 digits
@@ -108,7 +109,7 @@ const SignupScreen: React.FC = () => {
     Alert.alert(
       'Verification Cancelled',
       'Your account has been removed. Please sign up again.',
-      [{ text: 'OK' }]
+      [{ text: 'OK' }],
     );
   };
 
@@ -128,13 +129,24 @@ const SignupScreen: React.FC = () => {
       if (isSignUpComplete) {
         closeOtpModal();
         // Clear form data
+        const userData = await studentApi.createStudent({
+          cognitoId: cognitoId,
+          username: email,
+          email: email,
+          firstName: firstName,
+          lastName: lastName,
+          phoneNumber: phoneNumber
+        })
+        
+        console.log("User creation in API : ", userData);
+
         setFirstName('');
         setLastName('');
         setEmail('');
         setPhoneNumber('');
         setPassword('');
         setConfirmPassword('');
-        
+
         Alert.alert(
           'Success!',
           'Email verified successfully! Please log in with your credentials.',
@@ -143,7 +155,7 @@ const SignupScreen: React.FC = () => {
               text: 'OK',
               onPress: () => navigation.navigate('Login'),
             },
-          ]
+          ],
         );
       } else {
         closeOtpModal();
@@ -155,22 +167,25 @@ const SignupScreen: React.FC = () => {
               text: 'OK',
               onPress: () => resetAndNavigate('Login'),
             },
-          ]
+          ],
         );
       }
     } catch (err: any) {
       console.error('OTP Confirmation Error:', err);
-      
+
       // Delete user on OTP verification failure
       await deleteUserFromCognito();
       closeOtpModal();
-      
-      let errorMessage = 'Failed to verify code. Your account has been removed. Please sign up again.';
-      
+
+      let errorMessage =
+        'Failed to verify code. Your account has been removed. Please sign up again.';
+
       if (err.name === 'CodeMismatchException') {
-        errorMessage = 'Invalid verification code. Your account has been removed. Please sign up again.';
+        errorMessage =
+          'Invalid verification code. Your account has been removed. Please sign up again.';
       } else if (err.name === 'ExpiredCodeException') {
-        errorMessage = 'Verification code has expired. Your account has been removed. Please sign up again.';
+        errorMessage =
+          'Verification code has expired. Your account has been removed. Please sign up again.';
       } else if (err.message) {
         errorMessage = `${err.message}. Your account has been removed. Please sign up again.`;
       }
@@ -186,8 +201,8 @@ const SignupScreen: React.FC = () => {
             setPhoneNumber('');
             setPassword('');
             setConfirmPassword('');
-          }
-        }
+          },
+        },
       ]);
     } finally {
       setOtpLoading(false);
@@ -234,7 +249,7 @@ const SignupScreen: React.FC = () => {
       // Format phone number for AWS Cognito (add +91 for Indian numbers)
       const formattedPhone = `+91${phoneNumber}`;
 
-      const { isSignUpComplete } = await signUp({
+      const { userId, isSignUpComplete } = await signUp({
         username: email,
         password,
         options: {
@@ -248,7 +263,9 @@ const SignupScreen: React.FC = () => {
           autoSignIn: false,
         },
       });
-
+      let user = userId as string;
+      setCognitoId(user);
+      console.log('User ID ', cognitoId);
       if (!isSignUpComplete) {
         // Show OTP verification alert
         Alert.alert(
@@ -259,7 +276,7 @@ const SignupScreen: React.FC = () => {
               text: 'OK',
               onPress: showOtpAlert,
             },
-          ]
+          ],
         );
       } else {
         Alert.alert('Success', 'Sign up complete! You can now log in.', [
@@ -543,7 +560,8 @@ const SignupScreen: React.FC = () => {
 
               {/* Help Text */}
               <Text className="text-xs text-gray-500 text-center mt-4">
-                Didn't receive the code? Check your spam folder or try signing up again.
+                Didn't receive the code? Check your spam folder or try signing
+                up again.
               </Text>
             </View>
           </View>

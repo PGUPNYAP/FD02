@@ -17,7 +17,7 @@ import { signIn, signOut, getCurrentUser, fetchUserAttributes, fetchAuthSession 
 import { EnvelopeIcon, LockClosedIcon } from 'react-native-heroicons/outline';
 import { useStorage, STORAGE_KEYS } from '../hooks/useStorage';
 import { resetAndNavigate, replace } from '../utils/NavigationUtil';
-
+import { studentApi } from '../services/api';
 
 // Define navigation stack parameter list
 type RootStackParamList = {
@@ -28,6 +28,7 @@ type RootStackParamList = {
 };
 
 interface UserData {
+  id:string,
   firstName: string;
   lastName: string;
   email: string;
@@ -78,6 +79,7 @@ const LoginScreen: React.FC = () => {
         console.log('User signed in successfully');
         
         try {
+          const studentId = await studentApi.getStudentByEmail(email);
           // Get current user and their attributes
           const currentUser = await getCurrentUser();
           const userAttributes = await fetchUserAttributes();
@@ -85,6 +87,7 @@ const LoginScreen: React.FC = () => {
           const accesstoken = session.tokens?.accessToken?.toString();
           // Extract user data
           const userData: UserData = {
+            id:studentId.id || '',
             firstName: userAttributes.given_name || '',
             lastName: userAttributes.family_name || '',
             email: userAttributes.email || email,

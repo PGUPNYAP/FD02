@@ -190,12 +190,12 @@ export const studentApi = {
     lastName?: string;
   }): Promise<{ success: boolean; data?: any; message: string }> => {
     try {
-      console.log('📝 Creating student with data:', studentData);
+      console.log(' Creating student with data:', studentData);
       const response = await api.post('/students/createStudent', studentData);
-      console.log('✅ Student created successfully:', response.data);
+      console.log('Student created successfully:', response.data);
       return { success: true, data: response.data, message: response.data.message || 'Student created successfully' };
     } catch (error: any) {
-      console.error('❌ Student creation failed:', error);
+      console.error(' Student creation failed:', error);
       if (error.response?.data) {
         throw new Error(error.response.data.message || 'Student creation failed');
       }
@@ -218,6 +218,35 @@ export const studentApi = {
       throw new Error('Failed to verify student');
     }
   },
+
+  // Fix the API function return type and usage
+getStudentByEmail: async (email: string): Promise<{
+  id: string;
+  cognitoId: string;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  isActive: boolean;
+  createdAt: string;
+}> => {
+  try {
+    console.log(' Fetching student by email:', email);
+    const response = await api.get(`/students/studentData/${email}`);
+    console.log(' Student found by email:', response.data);
+    return response.data; // This returns the actual student object
+  } catch (error: any) {
+    console.error(' Student not found by email:', error);
+    if (error.response?.status === 404) {
+      throw new Error('Student not found with this email. Please check your email or sign up.');
+    }
+    throw new Error('Failed to fetch student by email');
+  }
+},
+
+
+
 };
 
 // Seat API
