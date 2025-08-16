@@ -113,7 +113,7 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
       icon: QuestionMarkCircleIcon,
       title: 'Help & Support',
       subtitle: 'Get help and contact support',
-      onPress: () => navigation.navigate('Home'),
+      onPress: () => navigation.goBack(),
     },
     {
       icon: Cog6ToothIcon,
@@ -190,7 +190,7 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
         <View className="bg-gray-50 p-6 rounded-lg items-center">
           <Text className="text-gray-600 mb-2">No active subscription</Text>
           <Pressable
-            onPress={() => navigation.navigate('Home')}
+            onPress={() => navigation.goBack()}
             className="bg-blue-600 px-4 py-2 rounded-lg"
           >
             <Text className="text-white font-medium">Browse Libraries</Text>

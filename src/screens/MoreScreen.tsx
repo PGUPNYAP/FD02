@@ -19,7 +19,7 @@ import {
 import { TabScreenProps } from '../types/navigation';
 
 
-export default function MoreScreen({ navigation }: TabScreenProps<'More'>) {
+export default function MoreScreen({ }: TabScreenProps<'More'>) {
   const supportOptions = [
     {
       icon: ChatBubbleLeftRightIcon,

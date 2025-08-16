@@ -103,14 +103,14 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   };
 
   const handleBookNow = (library: Library) => {
-    navigation.navigate('Booking', { library });
+    navigation.getParent()?.navigate('Booking', { library });
   };
 
   const handleProfilePress = () => {
     if (currentUser) {
-      navigation.navigate('Profile');
+      navigation.getParent()?.navigate('Profile');
     } else {
-      navigation.navigate('Login');
+      navigation.getParent()?.navigate('Login');
     }
   };
 

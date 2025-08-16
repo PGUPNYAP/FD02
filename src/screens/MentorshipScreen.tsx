@@ -17,7 +17,7 @@ import {
 import { TabScreenProps } from '../types/navigation';
 
 
-export default function MentorshipScreen({ navigation }: TabScreenProps<'Mentorship'>) {
+export default function MentorshipScreen({ }: TabScreenProps<'Mentorship'>) {
   const mentors = [
     {
       id: '1',

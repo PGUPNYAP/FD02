@@ -108,7 +108,7 @@ const LoginScreen: React.FC = () => {
             [
               {
                 text: 'OK',
-                onPress: () => resetAndNavigate('Home')
+                onPress: () => resetAndNavigate('Main')
               }
             ]
           );
@@ -122,7 +122,7 @@ const LoginScreen: React.FC = () => {
             [
               {
                 text: 'OK',
-                onPress: () => resetAndNavigate('Home')
+                onPress: () => resetAndNavigate('Main')
               }
             ]
           );

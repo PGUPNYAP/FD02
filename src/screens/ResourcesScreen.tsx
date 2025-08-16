@@ -16,7 +16,7 @@ import {
 import { TabScreenProps } from '../types/navigation';
 
 
-export default function ResourcesScreen({ navigation }: TabScreenProps<'Resources'>) {
+export default function ResourcesScreen({ }: TabScreenProps<'Resources'>) {
   const resourceCategories = [
     {
       id: '1',
