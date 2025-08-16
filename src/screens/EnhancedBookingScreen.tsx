@@ -34,6 +34,7 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
     const loadUserData = async () => {
       try {
         const userData = await getItem(STORAGE_KEYS.CURRENT_USER);
+        console.log("userData from Booking : ",userData);
         setCurrentUser(userData);
         console.log('📱 Current user loaded in booking screen:', userData);
       } catch (error) {
@@ -57,45 +58,45 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
     staleTime: 30000, // 30 seconds
   });
 
-  const bookingMutation = useMutation({
-    mutationFn: bookingApi.createBooking,
-    onSuccess: (data) => {
-      // Invalidate and refetch seat data
-      queryClient.invalidateQueries({ queryKey: ['seats', library.id] });
-      queryClient.invalidateQueries({ queryKey: ['timeslots', library.id] });
+  // const bookingMutation = useMutation({
+  //   mutationFn: bookingApi.createBooking,
+  //   onSuccess: (data) => {
+  //     // Invalidate and refetch seat data
+  //     queryClient.invalidateQueries({ queryKey: ['seats', library.id] });
+  //     queryClient.invalidateQueries({ queryKey: ['timeslots', library.id] });
       
-      Alert.alert(
-        'Booking Confirmed!',
-        `Your booking has been confirmed for Seat ${selectedSeatNumber} at ${library.libraryName}.`,
-        [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
-      );
-    },
-    onError: (error: any) => {
-      console.error('Booking error:', error);
-      Alert.alert(
-        'Booking Failed', 
-        error.message || 'Something went wrong. Please try again.'
-      );
-    },
-  });
+  //     Alert.alert(
+  //       'Booking Confirmed!',
+  //       `Your booking has been confirmed for Seat ${selectedSeatNumber} at ${library.libraryName}.`,
+  //       [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
+  //     );
+  //   },
+  //   onError: (error: any) => {
+  //     console.error('Booking error:', error);
+  //     Alert.alert(
+  //       'Booking Failed', 
+  //       error.message || 'Something went wrong. Please try again.'
+  //     );
+  //   },
+  // });
 
   // Mutation to verify student exists before booking
-  const verifyStudentMutation = useMutation({
-    mutationFn: studentApi.getStudentByCognitoId,
-    onSuccess: (studentData) => {
-      console.log('✅ Student verified:', studentData);
-      // Proceed with booking using the verified student ID
-      proceedWithBooking(studentData.id);
-    },
-    onError: (error: any) => {
-      console.error('❌ Student verification failed:', error);
-      Alert.alert(
-        'Authentication Error',
-        'Please login again to continue booking.',
-        [{ text: 'Login', onPress: () => navigation.navigate('Login') }]
-      );
-    },
-  });
+  // const verifyStudentMutation = useMutation({
+  //   mutationFn: studentApi.getStudentByCognitoId,
+  //   onSuccess: (studentData) => {
+  //     console.log('✅ Student verified:', studentData);
+  //     // Proceed with booking using the verified student ID
+  //     proceedWithBooking(studentData.id);
+  //   },
+  //   onError: (error: any) => {
+  //     console.error('❌ Student verification failed:', error);
+  //     Alert.alert(
+  //       'Authentication Error',
+  //       'Please login again to continue booking.',
+  //       [{ text: 'Login', onPress: () => navigation.navigate('Login') }]
+  //     );
+  //   },
+  // });
   const handleSeatSelect = (seatId: string, seatNumber: number) => {
     setSelectedSeatId(seatId);
     setSelectedSeatNumber(seatNumber);
@@ -106,8 +107,8 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
       Alert.alert('Loading', 'Please wait while we verify your login status.');
       return;
     }
-
-    if (!currentUser) {
+    console.log("current user in handle Book press",currentUser.accessToken);
+    if (!currentUser.accessToken) {
       Alert.alert('Login Required', 'Please login to book a seat.', [
         { text: 'Login', onPress: () => navigation.navigate('Login') },
         { text: 'Cancel', style: 'cancel' }
@@ -125,39 +126,40 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
 
     // First verify the student exists in the backend
     console.log('🔍 Verifying student before booking...');
-    verifyStudentMutation.mutate(currentUser.cognitoId);
+  //  verifyStudentMutation.mutate(currentUser.cognitoId);
+   // proceedWithBooking();
   };
 
-  const proceedWithBooking = (verifiedStudentId: string) => {
-    if (!selectedPlan || !selectedTimeSlot || !selectedSeatId) return;
+  // const proceedWithBooking = () => {
+  //   if (!selectedPlan || !selectedTimeSlot || !selectedSeatId) return;
     
-    try {
-      // Ensure all IDs are strings and match backend expectations
-      const bookingData = {
-        studentId: verifiedStudentId, // Use the verified backend student ID
-        libraryId: library.id,
-        planId: selectedPlan.id,
-        timeSlotId: selectedTimeSlot.id,
-        seatId: selectedSeatId,
-        totalAmount: Number(selectedPlan.price), // Ensure it's a number
-      };
+  //   try {
+  //     // Ensure all IDs are strings and match backend expectations
+  //     const bookingData = {
+  //      // studentId: verifiedStudentId, // Use the verified backend student ID
+  //       libraryId: library.id,
+  //       planId: selectedPlan.id,
+  //       timeSlotId: selectedTimeSlot.id,
+  //       seatId: selectedSeatId,
+  //       totalAmount: Number(selectedPlan.price), // Ensure it's a number
+  //     };
 
-      console.log('📝 Submitting booking with verified data:', bookingData);
+  //     console.log('📝 Submitting booking with verified data:', bookingData);
       
-      // Validate all required fields are present
-      const requiredFields = ['studentId', 'libraryId', 'planId', 'timeSlotId', 'seatId', 'totalAmount'];
-      const missingFields = requiredFields.filter(field => !bookingData[field as keyof typeof bookingData]);
+  //     // Validate all required fields are present
+  //     const requiredFields = ['studentId', 'libraryId', 'planId', 'timeSlotId', 'seatId', 'totalAmount'];
+  //     const missingFields = requiredFields.filter(field => !bookingData[field as keyof typeof bookingData]);
       
-      if (missingFields.length > 0) {
-        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
-      }
+  //     if (missingFields.length > 0) {
+  //       throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+  //     }
       
-      bookingMutation.mutate(bookingData);
-    } catch (error) {
-      console.error('Booking submission error:', error);
-      Alert.alert('Booking Error', 'Failed to prepare booking data. Please try again.');
-    }
-  };
+  //  //   bookingMutation.mutate(bookingData);
+  //   } catch (error) {
+  //     console.error('Booking submission error:', error);
+  //     Alert.alert('Booking Error', 'Failed to prepare booking data. Please try again.');
+  //   }
+  // };
 
   const renderPlanSelection = () => (
     <View className="mb-6">
@@ -343,7 +345,7 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
 
       {/* Book Button */}
       <View className="p-4 border-t border-gray-200">
-        <Pressable
+        {/* <Pressable
           onPress={handleBookNowPress}
           disabled={!selectedPlan || !selectedTimeSlot || !selectedSeatId || bookingMutation.isPending || verifyStudentMutation.isPending || isLoadingUser}
           className={`py-4 rounded-lg ${
@@ -353,14 +355,14 @@ export default function EnhancedBookingScreen({ navigation, route }: BookingScre
           }`}
           android_ripple={{ color: '#2563eb' }}
         >
-          {(bookingMutation.isPending || verifyStudentMutation.isPending || isLoadingUser) ? (
+          {/* {(bookingMutation.isPending || verifyStudentMutation.isPending || isLoadingUser) ? (
             <ActivityIndicator color="white" />
           ) : (
             <Text className="text-white text-center font-semibold text-lg">
               Book Now
             </Text>
-          )}
-        </Pressable>
+          )} }
+        </Pressable> */}
       </View>
     </SafeAreaView>
   );

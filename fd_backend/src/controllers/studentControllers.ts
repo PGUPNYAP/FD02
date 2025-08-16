@@ -82,3 +82,41 @@ export const getStudentByCognitoId = async (
       .json({ message: `Error creating student: ${error.message}` });
   }
 };
+
+
+export const getStudentByEmail = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { email } = req.params;
+  console.log("🔍 Fetching student by email:", email);
+
+  try {
+    const student = await prisma.student.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        cognitoId: true,
+        username: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phoneNumber: true,
+        isActive: true,
+        createdAt: true
+      }
+    });
+
+    if (!student) {
+      console.error("❌ Student not found for email:", email);
+      res.status(404).json({ message: "Student not found" });
+      return;
+    }
+
+    console.log("✅ Student found:", student);
+    res.status(200).json(student);
+  } catch (error: any) {
+    console.error("❌ Error fetching student:", error);
+    res.status(500).json({ message: `Error retrieving student: ${error.message}` });
+  }
+};

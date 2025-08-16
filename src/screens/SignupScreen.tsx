@@ -30,6 +30,8 @@ import {
   fetchAuthSession,
 } from 'aws-amplify/auth';
 import { useStorage, STORAGE_KEYS } from '../hooks/useStorage';
+import { resetAndNavigate } from '../utils/NavigationUtil';
+
 
 // Define navigation stack parameter list
 type RootStackParamList = {
@@ -122,7 +124,7 @@ const SignupScreen: React.FC = () => {
         username: email,
         confirmationCode: otpCode.trim(),
       });
-
+      console.log('isSignUpComplete:', isSignUpComplete);
       if (isSignUpComplete) {
         closeOtpModal();
         // Clear form data
@@ -132,7 +134,7 @@ const SignupScreen: React.FC = () => {
         setPhoneNumber('');
         setPassword('');
         setConfirmPassword('');
-
+        
         Alert.alert(
           'Success!',
           'Email verified successfully! Please log in with your credentials.',
@@ -151,7 +153,7 @@ const SignupScreen: React.FC = () => {
           [
             {
               text: 'OK',
-              onPress: () => navigation.navigate('Login'),
+              onPress: () => resetAndNavigate('Login'),
             },
           ]
         );

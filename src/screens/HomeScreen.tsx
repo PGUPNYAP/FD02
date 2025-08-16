@@ -23,20 +23,20 @@ import { HomeScreenProps } from '../types/navigation';
 const { height } = Dimensions.get('window');
 
 // Define user type based on your login flow
-interface UserData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber: string;
-  accessToken: string;
-  userId: string;
-}
+// interface UserData {
+//   firstName: string;
+//   lastName: string;
+//   email: string;
+//   phoneNumber: string;
+//   accessToken: string;
+//   userId: string;
+// }
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showLocationPicker, setShowLocationPicker] = useState(false);
-  const [currentUser, setCurrentUser] = useState<UserData | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const { getItem } = useStorage();
 
@@ -47,7 +47,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         setIsLoadingUser(true);
 
         // Load current user from storage
-        const userData = await getItem<UserData>(STORAGE_KEYS.CURRENT_USER);
+        const userData = await getItem(STORAGE_KEYS.CURRENT_USER);
         setCurrentUser(userData);
         console.log('User data loaded in HomeScreen :', userData);
 
@@ -107,6 +107,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   };
 
   const handleProfilePress = () => {
+    console.log("User sending to profile component :", currentUser);
     if (currentUser) {
       navigation.navigate('Profile');
     } else {

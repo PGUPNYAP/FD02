@@ -382,56 +382,17 @@ export const getSeatsByLibraryId = async (req: Request, res: Response) => {
         upcomingBookingsCount: upcomingBookings.length,
         nextBooking: upcomingBookings[0] || null,
         totalBookings: seat.bookings.length,
-        
         // All bookings for this seat
         bookings: seat.bookings
       };
     });
 
-    // Create summary statistics
-    const summary = {
-      totalSeats: seats.length,
-      activeSeats: seats.filter(seat => seat.isActive).length,
-      inactiveSeats: seats.filter(seat => !seat.isActive).length,
-      
-      // Availability breakdown
-      availableSeats: seatsWithDetails.filter(seat => seat.currentAvailability === 'AVAILABLE').length,
-      occupiedSeats: seatsWithDetails.filter(seat => seat.currentAvailability === 'OCCUPIED').length,
-      reservedSeats: seatsWithDetails.filter(seat => seat.currentAvailability === 'RESERVED').length,
-      maintenanceSeats: seatsWithDetails.filter(seat => seat.currentAvailability === 'MAINTENANCE').length,
-      
-      // Seat number range
-      seatNumberRange: seats.length > 0 ? {
-        min: Math.min(...seats.map(seat => seat.seatNumber)),
-        max: Math.max(...seats.map(seat => seat.seatNumber))
-      } : null,
-      
-      // Total bookings across all seats
-      totalBookings: seats.reduce((sum, seat) => sum + seat.bookings.length, 0)
-    };
-
-    // Group seats by different criteria for easier frontend consumption
-    const groupedData = {
-      byStatus: seatsWithDetails.reduce((acc, seat) => {
-        const status = seat.currentAvailability;
-        if (!acc[status]) acc[status] = [];
-        acc[status].push(seat);
-        return acc;
-      }, {} as Record<string, typeof seatsWithDetails>),
-      
-      byActivity: {
-        active: seatsWithDetails.filter(seat => seat.isActive),
-        inactive: seatsWithDetails.filter(seat => !seat.isActive)
-      }
-    };
-
+    
     return res.json({
       success: true,
       data: {
         library,
-        seats: seatsWithDetails,
-        summary,
-        groupedData
+        seats: seatsWithDetails,  
       },
       message: 'Seats retrieved successfully'
     });

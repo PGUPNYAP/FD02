@@ -7,6 +7,7 @@ import {
   Pressable,
   Image,
   Alert,
+  ActivityIndicator
 } from 'react-native';
 import {
   UserIcon,
@@ -20,7 +21,7 @@ import {
 import { signOut } from 'aws-amplify/auth';
 import { RootStackScreenProps } from '../types/navigation';
 import { useStorage, STORAGE_KEYS } from '../hooks/useStorage';
-
+import { resetAndNavigate } from "../utils/NavigationUtil"
 
 export default function ProfileScreen({ navigation }: RootStackScreenProps<'Profile'>) {
   const { getItem, removeItem } = useStorage();
@@ -35,7 +36,7 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
         const userData = await getItem(STORAGE_KEYS.CURRENT_USER);
         const history = await getItem(STORAGE_KEYS.BOOKING_HISTORY) || [];
         setCurrentUser(userData);
-        setBookingHistory(history);
+       // setBookingHistory(history);
         console.log('📱 Profile data loaded:', { userData, history });
       } catch (error) {
         console.error('Error loading profile data:', error);
@@ -46,18 +47,18 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
     loadData();
   }, []);
 
-  if (!currentUser) {
-    // If no user is logged in, redirect to login
-    React.useEffect(() => {
-      navigation.replace('Login');
-    }, []);
-    return null;
-  }
+  // if (!currentUser) {
+  //   // If no user is logged in, redirect to login
+  //   React.useEffect(() => {
+  //     navigation.replace('Login');
+  //   }, []);
+  //   return null;
+  // }
 
   const user = {
-    name: currentUser.firstName || currentUser.name || 'User',
-    email: currentUser.email,
-    phone: currentUser.phoneNumber || '+91 XXXXXXXXXX',
+   // name: currentUser.firstName,
+   // email: currentUser.email,
+   // phone: currentUser.phoneNumber || '+91 XXXXXXXXXX',
     profileImage: null,
   };
 
@@ -76,17 +77,18 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
           onPress: async () => {
             try {
               // Sign out from AWS Cognito
-              await signOut();
+              
               // Clear local storage
               await removeItem(STORAGE_KEYS.CURRENT_USER);
               await removeItem(STORAGE_KEYS.BOOKING_HISTORY);
+              await signOut();
               console.log('✅ User logged out successfully');
-              navigation.replace('Login');
+              resetAndNavigate('Login');
             } catch (error) {
               console.error('Logout error:', error);
               // Still clear local storage and navigate even if Cognito signout fails
               await removeItem(STORAGE_KEYS.CURRENT_USER);
-              navigation.replace('Login');
+              resetAndNavigate('Login');
             }
           }
         }
@@ -139,9 +141,9 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
           <UserIcon size={40} color="white" />
         )}
       </View>
-      <Text className="text-xl font-bold text-gray-800">{user.name}</Text>
-      <Text className="text-gray-600">{user.email}</Text>
-      <Text className="text-gray-600">{user.phone}</Text>
+      <Text className="text-xl font-bold text-gray-800">{currentUser.firstName}</Text>
+      <Text className="text-gray-600">{currentUser.email}</Text>
+      <Text className="text-gray-600">{currentUser.phoneNumber}</Text>
     </View>
   );
 
@@ -180,7 +182,7 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
               Seat: {currentSubscription.seatNumber}
             </Text>
             <Text className="text-sm text-gray-600">
-              {new Date(booking.date).toLocaleDateString()}
+              {/* {new Date(booking.date).toLocaleDateString()} */}
             </Text>
           </View>
         </View>
@@ -198,58 +200,58 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
     </View>
   );
 
-  const renderBookingHistory = () => (
-    <View className="mx-4 mb-6">
-      <Text className="text-lg font-semibold text-gray-800 mb-3">
-        Booking History
-      </Text>
-      {bookingHistory.length > 0 ? (
-        bookingHistory.map((booking: any) => (
-          <View
-            key={booking.id}
-            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-3"
-          >
-            <View className="flex-row justify-between items-start mb-2">
-              <View className="flex-1">
-                <Text className="font-semibold text-gray-800">
-                  {booking.libraryName}
-                </Text>
-                <Text className="text-sm text-gray-600">
-                  {booking.planName}
-                </Text>
-                <Text className="text-xs text-gray-500">
-                  {new Date(booking.date).toLocaleDateString()}
-                </Text>
-              </View>
-              <View className="items-end">
-                <Text className="font-semibold text-gray-800">
-                  ₹{booking.amount.toLocaleString()}
-                </Text>
-                <View className={`px-2 py-1 rounded-full mt-1 ${
-                  booking.status === 'Active' 
-                    ? 'bg-green-100' 
-                    : 'bg-gray-100'
-                }`}>
-                  <Text className={`text-xs font-medium ${
-                    booking.status === 'Active' 
-                      ? 'text-green-800' 
-                      : 'text-gray-800'
-                  }`}>
-                    {booking.status}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        ))
-      ) : (
-        <View className="bg-gray-50 p-6 rounded-lg items-center">
-          <ClockIcon size={40} color="#9ca3af" />
-          <Text className="text-gray-600 mt-2">No booking history</Text>
-        </View>
-      )}
-    </View>
-  );
+  // const renderBookingHistory = () => (
+  //   <View className="mx-4 mb-6">
+  //     <Text className="text-lg font-semibold text-gray-800 mb-3">
+  //       Booking History
+  //     </Text>
+  //     {bookingHistory.length > 0 ? (
+  //       bookingHistory.map((booking: any) => (
+  //         <View
+  //           key={booking.id}
+  //           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-3"
+  //         >
+  //           <View className="flex-row justify-between items-start mb-2">
+  //             <View className="flex-1">
+  //               <Text className="font-semibold text-gray-800">
+  //                 {booking.libraryName}
+  //               </Text>
+  //               <Text className="text-sm text-gray-600">
+  //                 {booking.planName}
+  //               </Text>
+  //               <Text className="text-xs text-gray-500">
+  //                 {new Date(booking.date).toLocaleDateString()}
+  //               </Text>
+  //             </View>
+  //             <View className="items-end">
+  //               <Text className="font-semibold text-gray-800">
+  //                 ₹{booking.amount.toLocaleString()}
+  //               </Text>
+  //               <View className={`px-2 py-1 rounded-full mt-1 ${
+  //                 booking.status === 'Active' 
+  //                   ? 'bg-green-100' 
+  //                   : 'bg-gray-100'
+  //               }`}>
+  //                 <Text className={`text-xs font-medium ${
+  //                   booking.status === 'Active' 
+  //                     ? 'text-green-800' 
+  //                     : 'text-gray-800'
+  //                 }`}>
+  //                   {booking.status}
+  //                 </Text>
+  //               </View>
+  //             </View>
+  //           </View>
+  //         </View>
+  //       ))
+  //     ) : (
+  //       <View className="bg-gray-50 p-6 rounded-lg items-center">
+  //         <ClockIcon size={40} color="#9ca3af" />
+  //         <Text className="text-gray-600 mt-2">No booking history</Text>
+  //       </View>
+  //     )}
+  //   </View>
+  // );
 
   if (isLoading) {
     return (
@@ -296,7 +298,7 @@ export default function ProfileScreen({ navigation }: RootStackScreenProps<'Prof
       <ScrollView showsVerticalScrollIndicator={false}>
         {renderProfileHeader()}
         {renderCurrentSubscription()}
-        {renderBookingHistory()}
+        {/* {renderBookingHistory()} */}
         
         <View className="mx-4 mb-6">
           <Text className="text-lg font-semibold text-gray-800 mb-3">
