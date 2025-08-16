@@ -15,77 +15,14 @@ const queryClient = new QueryClient();
 Amplify.configure(amplifyconfig);
 
 export default function App() {
-  const [user, setUser] = useState<string | null>('');
-  const [loading, setLoading] = useState(true);
-  
-  console.log('User authentication status:', user ? 'Authenticated' : 'Not authenticated');
-
-  const checkUser = async () => {
-    try {
-      const session = await fetchAuthSession();
-      const accessToken = session.tokens?.accessToken?.toString();
-      console.log("Aut access token : ",accessToken);
-      setUser(accessToken || null);
-      console.log('checkUser: User session found:', !!accessToken);
-    } catch (e) {
-      setUser(null);
-      console.log('checkUser: No user found or error:', e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    checkUser();
-
-    // Listen to auth events
-    const unsubscribe = Hub.listen('auth', ({ payload: { event } }) => {
-      console.log('Hub Auth Event detected:', event);
-      if (
-        event === 'signedIn' ||
-        event === 'signedOut' ||
-        event === 'tokenRefresh' 
-      ) {
-        checkUser();
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3b82f6" />
-        <Text style={styles.loadingText}>Loading application...</Text>
-      </View>
-    );
-  }
-
-  // Determine initial route based on authentication status
-  const initialRoute = user ? 'Home' : 'Login';
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Navigation initialRoute={initialRoute} />
+      <Navigation />
     </QueryClientProvider>
   );
 }
 
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f9fafb',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#6b7280',
-    fontWeight: '500',
-  },
-});
 
 
 

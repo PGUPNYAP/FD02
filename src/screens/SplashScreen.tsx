@@ -7,12 +7,14 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
+import { fetchAuthSession } from 'aws-amplify/auth';
+import { useStorage, STORAGE_KEYS } from '../hooks/useStorage';
 import { replace } from '../utils/NavigationUtil';
-import logoImage from '../assets/images/logo.png'; // replace with actual path
+import { SplashScreenProps } from '../types/navigation';
 
 const { height } = Dimensions.get('window');
 
-export default function SplashScreen() {
+export default function SplashScreen({ navigation }: SplashScreenProps) {
   const ringSize1 = useSharedValue(height * 0.2);
   const ringSize2 = useSharedValue(height * 0.2);
   const logoScale = useSharedValue(0.5);
@@ -20,8 +22,40 @@ export default function SplashScreen() {
   const textScale = useSharedValue(0.8);
   const textOpacity = useSharedValue(0);
   const hasNavigated = useRef(false);
+  const { getItem } = useStorage();
+
+  const checkAuthAndNavigate = async () => {
+    try {
+      // Check if user is authenticated via AWS Cognito
+      const session = await fetchAuthSession();
+      const accessToken = session.tokens?.accessToken?.toString();
+      
+      // Also check if user data exists in AsyncStorage
+      const userData = await getItem(STORAGE_KEYS.CURRENT_USER);
+      
+      console.log('🔍 Auth check:', {
+        hasAccessToken: !!accessToken,
+        hasUserData: !!userData,
+      });
+
+      if (accessToken && userData) {
+        // User is authenticated and has local data
+        console.log('✅ User authenticated, navigating to Home');
+        replace('Home');
+      } else {
+        // User is not authenticated or missing data
+        console.log('❌ User not authenticated, navigating to Login');
+        replace('Login');
+      }
+    } catch (error) {
+      console.error('❌ Auth check failed:', error);
+      // On error, navigate to login
+      replace('Login');
+    }
+  };
 
   useEffect(() => {
+    // Start animations
     ringSize1.value = withSpring(height * 0.3, { damping: 10, stiffness: 90 });
 
     setTimeout(() => {
@@ -42,12 +76,13 @@ export default function SplashScreen() {
       textOpacity.value = withTiming(1, { duration: 400 });
     }, 700);
 
+    // Check authentication after animations start
     const timer = setTimeout(() => {
       if (!hasNavigated.current) {
-        replace('Home');
         hasNavigated.current = true;
+        checkAuthAndNavigate();
       }
-    }, 3000);
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, []);
@@ -74,17 +109,10 @@ export default function SplashScreen() {
     opacity: textOpacity.value,
   }));
 
-  const logoSize = height * 0.2;
+  const logoSize = height * 0.15;
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#0f172a', // 🟦 deep navy (UI-complementary)
-      }}
-    >
+    <View className="flex-1 justify-center items-center bg-slate-900">
       <StatusBar barStyle="light-content" backgroundColor="#0f172a" />
 
       {/* Animated rings */}
@@ -92,7 +120,7 @@ export default function SplashScreen() {
         style={[
           {
             position: 'absolute',
-            backgroundColor: 'rgba(250, 204, 21, 0.1)', // soft gold glow
+            backgroundColor: 'rgba(59, 130, 246, 0.1)', // blue glow
             justifyContent: 'center',
             alignItems: 'center',
             zIndex: 0,
@@ -103,7 +131,7 @@ export default function SplashScreen() {
         <Animated.View
           style={[
             {
-              backgroundColor: 'rgba(250, 204, 21, 0.2)', // stronger ring
+              backgroundColor: 'rgba(59, 130, 246, 0.2)', // stronger ring
               justifyContent: 'center',
               alignItems: 'center',
               zIndex: 1,
@@ -111,18 +139,21 @@ export default function SplashScreen() {
             ring1Style,
           ]}
         >
-          <Animated.Image
-            source={logoImage}
+          <Animated.View
             style={[
               {
                 width: logoSize,
                 height: logoSize,
                 borderRadius: logoSize / 2,
+                backgroundColor: '#3b82f6',
+                justifyContent: 'center',
+                alignItems: 'center',
               },
               logoStyle,
             ]}
-            resizeMode="cover"
-          />
+          >
+            <Text className="text-white font-bold text-4xl">FD</Text>
+          </Animated.View>
         </Animated.View>
       </Animated.View>
 
@@ -131,33 +162,16 @@ export default function SplashScreen() {
         style={[
           {
             alignItems: 'center',
-            marginTop: Math.min(height * 0.45, 300),
+            marginTop: Math.min(height * 0.35, 250),
           },
           textAnimatedStyle,
         ]}
       >
-        <Text
-          style={{
-            fontFamily: 'Okra', // ✅ use your custom Okra font
-            fontSize: height * 0.07,
-            fontWeight: Platform.OS === 'ios' ? '700' : 'bold',
-            color: '#facc15', // 🟨 gold
-            letterSpacing: 1.5,
-          }}
-        >
+        <Text className="text-5xl font-bold text-blue-400 tracking-wider">
           Focus Desk
         </Text>
-        <Text
-          style={{
-            fontFamily: 'Okra',
-            fontSize: height * 0.02,
-            fontWeight: '500',
-            color: '#e2e8f0', // light gray for contrast
-            marginTop: 8,
-            letterSpacing: 1,
-          }}
-        >
-          Welcome to Focus Desk
+        <Text className="text-lg font-medium text-slate-300 mt-2 tracking-wide">
+          Your Study Companion
         </Text>
       </Animated.View>
     </View>

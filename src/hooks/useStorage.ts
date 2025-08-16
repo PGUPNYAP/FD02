@@ -24,6 +24,17 @@ export const useStorage = () => {
     }
   };
 
+  // Synchronous version for immediate access (use carefully)
+  const getItemSync = <T>(key: string): T | null => {
+    try {
+      // This is a fallback - prefer async version
+      console.log(`📱 Sync retrieval attempted for ${key} - use async version when possible`);
+      return null;
+    } catch (error) {
+      console.error('Error in sync storage access:', error);
+      return null;
+    }
+  };
   const removeItem = async (key: string): Promise<void> => {
     try {
       await AsyncStorage.removeItem(key);
@@ -45,6 +56,7 @@ export const useStorage = () => {
   return {
     setItem,
     getItem,
+    getItemSync,
     removeItem,
     clear,
   };

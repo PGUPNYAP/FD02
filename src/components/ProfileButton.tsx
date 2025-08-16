@@ -16,7 +16,7 @@ export default function ProfileButton({ onPress, user }: ProfileButtonProps) {
   return (
     <Pressable
       onPress={onPress}
-      className="flex-row items-center bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full shadow-sm border border-gray-100"
+      className="flex-row items-center bg-gray-100 px-3 py-2.5 rounded-xl border border-gray-200"
       android_ripple={{ color: '#f3f4f6', borderless: true }}
     >
       <View className="w-8 h-8 bg-blue-600 rounded-full items-center justify-center mr-2">

@@ -11,7 +11,7 @@ export default function LocationButton({ selectedLocation, onPress }: LocationBu
   return (
     <Pressable
       onPress={onPress}
-      className="flex-row items-center bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full shadow-sm border border-gray-100 max-w-48"
+      className="flex-row items-center bg-blue-50 px-3 py-2.5 rounded-xl border border-blue-200 max-w-44"
       android_ripple={{ color: '#f3f4f6', borderless: true }}
     >
       <MapPinIcon size={16} color="#3b82f6" />
